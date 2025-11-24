@@ -25,8 +25,8 @@
       },
       "package": "com.gomate.app"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

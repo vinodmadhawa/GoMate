@@ -36,10 +36,10 @@ export default function DetailsScreen({ route, navigation }: any) {
   const getTransportIcon = (type: string) => {
     switch (type) {
       case 'Bus': return 'truck';
-      case 'Train': return 'train';
+      case 'Train': return 'truck';
       case 'Taxi': return 'truck';
       case 'Tuk-Tuk': return 'truck';
-      case 'Private Vehicle': return 'car';
+      case 'Private Vehicle': return 'truck';
       default: return 'map-pin';
     }
   };

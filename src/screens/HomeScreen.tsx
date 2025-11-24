@@ -146,26 +146,43 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.card }]}>
+      <LinearGradient
+        colors={['#20B2AA', '#4DB8E8']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
         <View style={styles.headerTop}>
-          <View>
-            <Text style={[styles.greeting, { color: theme.colors.textSecondary }]}>
-              Welcome back,
-            </Text>
-            <Text style={[styles.userName, { color: theme.colors.text }]}>
-              {user?.name || 'Traveler'}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0).toUpperCase() || 'T'}
-              </Text>
+          <View style={styles.logoContainer}>
+            <View style={styles.logo}>
+              <Text style={styles.logoText}>GM</Text>
             </View>
-          </TouchableOpacity>
+            <View>
+              <Text style={styles.appTitle}>GoMate</Text>
+              <Text style={styles.appSubtitle}>Explore Sri Lanka</Text>
+            </View>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+              <Feather name="user" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={{ marginLeft: 16 }}>
+              <Feather name="moon" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={{ marginLeft: 16 }}>
+              <Feather name="log-out" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View style={[styles.searchContainer, { backgroundColor: theme.colors.inputBackground }]}>
+        <Text style={styles.headerTitle}>Discover Sri Lanka</Text>
+        <Text style={styles.headerSubtitle}>
+          Explore breathtaking destinations with convenient transport options
+        </Text>
+      </LinearGradient>
+
+      <View style={styles.contentContainer}>
+        <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
           <Feather name="search" size={20} color={theme.colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.colors.text }]}
@@ -181,38 +198,22 @@ export default function HomeScreen({ navigation }: any) {
           )}
         </View>
 
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={categories}
-          keyExtractor={item => item}
-          contentContainerStyle={styles.categoriesContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setSelectedCategory(item)}
-              style={[
-                styles.categoryChip,
-                {
-                  backgroundColor:
-                    selectedCategory === item
-                      ? theme.colors.primary
-                      : theme.colors.inputBackground,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  {
-                    color: selectedCategory === item ? '#fff' : theme.colors.text,
-                  },
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+        <View style={[styles.filterRow, { backgroundColor: theme.colors.card }]}>
+          <Feather name="filter" size={18} color={theme.colors.text} />
+          <Text style={[styles.filterText, { color: theme.colors.text }]}>
+            {selectedCategory}
+          </Text>
+          <Feather name="chevron-down" size={18} color={theme.colors.text} />
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            All Destinations
+          </Text>
+          <Text style={[styles.placeCount, { color: theme.colors.textSecondary }]}>
+            {places.length} places
+          </Text>
+        </View>
       </View>
 
       <FlatList
@@ -248,18 +249,107 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingBottom: 30,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  appTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  appSubtitle: {
+    fontSize: 13,
+    color: '#fff',
+    opacity: 0.9,
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: '#fff',
+    opacity: 0.9,
+    lineHeight: 22,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 15,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  filterText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  placeCount: {
+    fontSize: 14,
   },
   greeting: {
     fontSize: 14,
@@ -281,19 +371,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 50,
-    marginBottom: 15,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-  },
   categoriesContainer: {
     gap: 10,
   },
@@ -309,6 +386,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 20,
+    paddingTop: 12,
   },
   card: {
     borderRadius: 16,
@@ -353,7 +431,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 15,
     right: 15,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 20,
     padding: 8,
   },

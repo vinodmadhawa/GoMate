@@ -10,11 +10,12 @@ import { setFavorites } from '../redux/slices/favoritesSlice';
 import { storageService } from '../utils/storage';
 
 // Screens
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import AuthScreen from '../screens/AuthScreen';
 import HomeScreen from '../screens/HomeScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+import ExploreScreen from '../screens/ExploreScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createStackNavigator();
@@ -62,6 +63,15 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="map" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
@@ -77,8 +87,8 @@ function TabNavigator() {
 function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Login" component={AuthScreen} />
     </Stack.Navigator>
   );
 }
@@ -104,6 +114,7 @@ export default function AppNavigator() {
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   useEffect(() => {
     checkAuthStatus();
@@ -111,17 +122,29 @@ export default function AppNavigator() {
 
   const checkAuthStatus = async () => {
     try {
+      console.log('Checking auth status...');
       const user = await storageService.getUser();
+      console.log('User from storage:', user);
       if (user) {
         dispatch(setUser(user));
       }
 
       const favorites = await storageService.getFavorites();
+      console.log('Favorites from storage:', favorites);
       dispatch(setFavorites(favorites));
     } catch (error) {
       console.error('Error checking auth status:', error);
+    } finally {
+      setIsLoading(false);
+      console.log('Auth check complete');
     }
   };
+
+  console.log('Rendering AppNavigator, isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
+
+  if (isLoading) {
+    return null; // Or a loading screen
+  }
 
   return (
     <NavigationContainer
