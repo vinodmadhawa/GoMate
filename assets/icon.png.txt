@@ -1,0 +1,1 @@
+﻿Icon Placeholder - Use actual icon files for production. See README.md
