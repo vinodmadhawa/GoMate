@@ -31,16 +31,25 @@ function TabNavigator() {
         tabBarStyle: {
           backgroundColor: theme.colors.card,
           borderTopColor: theme.colors.border,
-          borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopWidth: 0,
+          height: 65,
+          paddingBottom: 10,
+          paddingTop: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 10,
         },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.tabBarInactive,
+        tabBarActiveTintColor: '#10B981',
+        tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          marginTop: 2,
+        },
+        tabBarIconStyle: {
+          marginTop: 2,
         },
       }}
     >

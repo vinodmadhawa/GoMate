@@ -63,7 +63,9 @@ export default function ProfileScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
-        colors={theme.dark ? ['#1E293B', '#0F172A'] : [theme.colors.primary, '#3B82F6']}
+        colors={['#10B981', '#0EA5E9']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.header}
       >
         <MotiView
@@ -214,8 +216,10 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 50,
     alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   avatarContainer: {
     marginBottom: 15,

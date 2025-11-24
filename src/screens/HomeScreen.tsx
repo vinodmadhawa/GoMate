@@ -9,6 +9,7 @@ import {
   TextInput,
   RefreshControl,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
@@ -16,13 +17,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { addFavorite, removeFavorite } from '../redux/slices/favoritesSlice';
+import { logout } from '../redux/slices/authSlice';
+import { storageService } from '../utils/storage';
 import { sriLankanPlaces } from '../data/places';
 import { Place } from '../types';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }: any) {
-  const { theme } = useTheme();
+  const { theme, toggleTheme, isDark } = useTheme();
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.auth.user);
   const favorites = useAppSelector(state => state.favorites.items);
@@ -30,6 +33,24 @@ export default function HomeScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await storageService.removeUser();
+            dispatch(logout());
+          },
+        },
+      ]
+    );
+  };
 
   const categories = ['All', 'Historical', 'Nature', 'Beach', 'Wildlife', 'Religious'];
 
@@ -95,11 +116,18 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.imageContainer}>
           <Image source={{ uri: item.image }} style={styles.image} />
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.8)']}
+            colors={['transparent', 'rgba(0,0,0,0.7)']}
             style={styles.imageOverlay}
           >
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-              <Text style={styles.statusText}>{item.status}</Text>
+            <View style={styles.badgeRow}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                <Text style={styles.statusText}>{item.status}</Text>
+              </View>
+              <View style={[styles.categoryBadgeTop, { backgroundColor: 'rgba(255, 255, 255, 0.9)' }]}>
+                <Text style={[styles.categoryBadgeTopText, { color: theme.colors.text }]}>
+                  {item.category}
+                </Text>
+              </View>
             </View>
           </LinearGradient>
           <TouchableOpacity
@@ -107,24 +135,26 @@ export default function HomeScreen({ navigation }: any) {
             onPress={() => toggleFavorite(item.id)}
           >
             <Feather
-              name={favorites.includes(item.id) ? 'heart' : 'heart'}
-              size={24}
+              name="heart"
+              size={22}
               color={favorites.includes(item.id) ? '#EF4444' : '#fff'}
               fill={favorites.includes(item.id) ? '#EF4444' : 'transparent'}
             />
           </TouchableOpacity>
+          <View style={styles.cardTitle}>
+            <Text style={styles.cardTitleText} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <View style={styles.cardLocationRow}>
+              <Feather name="map-pin" size={12} color="#fff" />
+              <Text style={styles.cardLocation}>
+                {item.province}
+              </Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.cardContent}>
-          <Text style={[styles.placeName, { color: theme.colors.text }]} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <View style={styles.locationRow}>
-            <Feather name="map-pin" size={14} color={theme.colors.textSecondary} />
-            <Text style={[styles.province, { color: theme.colors.textSecondary }]}>
-              {item.province}
-            </Text>
-          </View>
           <Text style={[styles.description, { color: theme.colors.textSecondary }]} numberOfLines={2}>
             {item.description}
           </Text>
@@ -133,10 +163,15 @@ export default function HomeScreen({ navigation }: any) {
               <Feather name="star" size={16} color="#F59E0B" fill="#F59E0B" />
               <Text style={[styles.rating, { color: theme.colors.text }]}>{item.rating}</Text>
             </View>
-            <View style={styles.categoryBadge}>
-              <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
-                {item.category}
-              </Text>
+            <View style={styles.transportIcons}>
+              {item.transportOptions?.slice(0, 3).map((transport, idx) => (
+                <View
+                  key={idx}
+                  style={[styles.transportIcon, { backgroundColor: theme.colors.primary + '20' }]}
+                >
+                  <Feather name="truck" size={14} color={theme.colors.primary} />
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -146,8 +181,9 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Fixed Header */}
       <LinearGradient
-        colors={['#20B2AA', '#4DB8E8']}
+        colors={['#10B981', '#0EA5E9']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -163,13 +199,22 @@ export default function HomeScreen({ navigation }: any) {
             </View>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => navigation.navigate('Profile')}
+            >
               <Feather name="user" size={20} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity style={{ marginLeft: 16 }}>
-              <Feather name="moon" size={20} color="#fff" />
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={toggleTheme}
+            >
+              <Feather name={isDark ? 'sun' : 'moon'} size={20} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity style={{ marginLeft: 16 }}>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={handleLogout}
+            >
               <Feather name="log-out" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -181,41 +226,7 @@ export default function HomeScreen({ navigation }: any) {
         </Text>
       </LinearGradient>
 
-      <View style={styles.contentContainer}>
-        <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
-          <Feather name="search" size={20} color={theme.colors.textSecondary} />
-          <TextInput
-            style={[styles.searchInput, { color: theme.colors.text }]}
-            placeholder="Search destinations..."
-            placeholderTextColor={theme.colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Feather name="x" size={20} color={theme.colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={[styles.filterRow, { backgroundColor: theme.colors.card }]}>
-          <Feather name="filter" size={18} color={theme.colors.text} />
-          <Text style={[styles.filterText, { color: theme.colors.text }]}>
-            {selectedCategory}
-          </Text>
-          <Feather name="chevron-down" size={18} color={theme.colors.text} />
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            All Destinations
-          </Text>
-          <Text style={[styles.placeCount, { color: theme.colors.textSecondary }]}>
-            {places.length} places
-          </Text>
-        </View>
-      </View>
-
+      {/* Scrollable Content */}
       <FlatList
         data={places}
         renderItem={renderPlaceCard}
@@ -229,6 +240,42 @@ export default function HomeScreen({ navigation }: any) {
             tintColor={theme.colors.primary}
           />
         }
+        ListHeaderComponent={
+          <View>
+            <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
+              <Feather name="search" size={20} color={theme.colors.textSecondary} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.colors.text }]}
+                placeholder="Search destinations..."
+                placeholderTextColor={theme.colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery !== '' && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Feather name="x" size={20} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <TouchableOpacity style={[styles.filterRow, { backgroundColor: theme.colors.card }]}>
+              <Feather name="filter" size={18} color={theme.colors.text} />
+              <Text style={[styles.filterText, { color: theme.colors.text }]}>
+                All Categories
+              </Text>
+              <Feather name="chevron-down" size={18} color={theme.colors.text} />
+            </TouchableOpacity>
+
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                All Destinations
+              </Text>
+              <Text style={[styles.placeCount, { color: theme.colors.textSecondary }]}>
+                {places.length} places
+              </Text>
+            </View>
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Feather name="map" size={64} color={theme.colors.textSecondary} />
@@ -237,6 +284,7 @@ export default function HomeScreen({ navigation }: any) {
             </Text>
           </View>
         }
+        ListFooterComponent={<View style={{ height: 20 }} />}
       />
     </View>
   );
@@ -249,13 +297,15 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -263,25 +313,25 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
+  appTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
   appSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#fff',
     opacity: 0.9,
     marginTop: 2,
@@ -289,36 +339,44 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },
+  headerButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#fff',
-    opacity: 0.9,
-    lineHeight: 22,
+    opacity: 0.95,
+    lineHeight: 20,
   },
-  contentContainer: {
+  listContainer: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 12,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 50,
+    paddingHorizontal: 16,
+    height: 48,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
@@ -328,11 +386,16 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   filterText: {
     flex: 1,
@@ -343,13 +406,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
   },
   placeCount: {
     fontSize: 14,
+    fontWeight: '500',
   },
   greeting: {
     fontSize: 14,
@@ -384,23 +449,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  listContainer: {
-    padding: 20,
-    paddingTop: 12,
-  },
   card: {
     borderRadius: 16,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
     overflow: 'hidden',
   },
   imageContainer: {
     position: 'relative',
-    height: 220,
+    height: 200,
   },
   image: {
     width: '100%',
@@ -409,48 +470,78 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    height: 100,
-    justifyContent: 'flex-end',
-    padding: 15,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
   statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
   },
   statusText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  categoryBadgeTop: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  categoryBadgeTopText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   favoriteButton: {
     position: 'absolute',
-    top: 15,
-    right: 15,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
     padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  cardContent: {
-    padding: 15,
+  cardTitle: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
   },
-  placeName: {
-    fontSize: 20,
+  cardTitleText: {
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 5,
+    color: '#fff',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  locationRow: {
+  cardLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 4,
   },
-  province: {
+  cardLocation: {
     fontSize: 13,
-    marginLeft: 5,
+    color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  cardContent: {
+    padding: 16,
   },
   description: {
     fontSize: 14,
@@ -465,21 +556,22 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   rating: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 5,
+    fontSize: 15,
+    fontWeight: '700',
   },
-  categoryBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+  transportIcons: {
+    flexDirection: 'row',
+    gap: 6,
   },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
+  transportIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     alignItems: 'center',

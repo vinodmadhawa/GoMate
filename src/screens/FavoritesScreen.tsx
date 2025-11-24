@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { removeFavorite, setFavorites } from '../redux/slices/favoritesSlice';
@@ -91,12 +92,24 @@ export default function FavoritesScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.card }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>My Favorites</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          {favoritePlaces.length} {favoritePlaces.length === 1 ? 'place' : 'places'} saved
-        </Text>
-      </View>
+      <LinearGradient
+        colors={['#10B981', '#0EA5E9']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.iconContainer}>
+            <Feather name="heart" size={32} color="#fff" />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>My Favorites</Text>
+            <Text style={styles.subtitle}>
+              {favoritePlaces.length} {favoritePlaces.length === 1 ? 'place' : 'places'} saved
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
 
       {favoritePlaces.length === 0 ? (
         <MotiView
@@ -139,20 +152,36 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
-    marginBottom: 5,
+    marginBottom: 4,
+    color: '#fff',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
+    color: '#fff',
+    opacity: 0.95,
   },
   listContainer: {
     padding: 20,

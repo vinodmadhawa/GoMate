@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAppDispatch } from '../redux/hooks';
 import { loginSuccess } from '../redux/slices/authSlice';
@@ -99,20 +100,27 @@ export default function AuthScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <MotiView
-          from={{ opacity: 0, translateY: -30 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 600 }}
-          style={styles.header}
+        <LinearGradient
+          colors={['#10B981', '#0EA5E9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
         >
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>GM</Text>
-          </View>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Welcome to GoMate</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+          <MotiView
+            from={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'timing', duration: 600 }}
+            style={styles.logoContainer}
+          >
+            <View style={styles.logo}>
+              <Text style={styles.logoText}>GM</Text>
+            </View>
+          </MotiView>
+          <Text style={styles.title}>Welcome to GoMate</Text>
+          <Text style={styles.subtitle}>
             Explore the beauty of Sri Lanka
           </Text>
-        </MotiView>
+        </LinearGradient>
 
         <MotiView
           from={{ opacity: 0, scale: 0.95 }}
@@ -120,7 +128,10 @@ export default function AuthScreen() {
           transition={{ type: 'timing', duration: 500, delay: 200 }}
           style={[styles.formCard, { backgroundColor: theme.colors.card }]}
         >
-          <Text style={[styles.formTitle, { color: theme.colors.text }]}>Get Started</Text>
+          <View style={styles.formHeader}>
+            <Feather name="log-in" size={28} color={theme.colors.primary} />
+            <Text style={[styles.formTitle, { color: theme.colors.text }]}>Get Started</Text>
+          </View>
           <Text style={[styles.formSubtitle, { color: theme.colors.textSecondary }]}>
             Login or create a new account
           </Text>
@@ -282,24 +293,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 24,
-    paddingTop: 60,
+    paddingBottom: 40,
   },
-  header: {
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 40,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginBottom: 32,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 30,
+  },
+  logoContainer: {
+    marginBottom: 20,
   },
   logo: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
-    backgroundColor: '#20B2AA',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   logoText: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -307,23 +326,34 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: '#fff',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
+    color: '#fff',
+    opacity: 0.95,
+    textAlign: 'center',
   },
   formCard: {
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 24,
+    padding: 28,
+    marginHorizontal: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
   },
   formTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 4,
   },
   formSubtitle: {
     fontSize: 14,
