@@ -9,6 +9,7 @@ import {
   Alert,
   StatusBar,
   Switch,
+  Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -25,24 +26,28 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          onPress: async () => {
-            await logout();
-            navigation.navigate('Auth' as never);
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Are you sure you want to logout?');
+      if (confirmed) {
+        logout();
+      }
+    } else {
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
           },
-          style: 'destructive',
-        },
-      ]
-    );
+          {
+            text: 'Logout',
+            onPress: () => logout(),
+            style: 'destructive',
+          },
+        ]
+      );
+    }
   };
 
   const menuItems = [

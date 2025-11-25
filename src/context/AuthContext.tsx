@@ -195,12 +195,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
 
       Toast.show({
-        type: 'info',
-        text1: 'Logged Out',
+        type: 'success',
+        text1: 'Logged Out Successfully',
         text2: 'See you next time!',
+        position: 'top',
+        visibilityTime: 3000,
       });
     } catch (error) {
       console.error('Error logging out:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Logout Error',
+        text2: 'Failed to logout. Please try again.',
+        position: 'top',
+      });
     }
   };
 
