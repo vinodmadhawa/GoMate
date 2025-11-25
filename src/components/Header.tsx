@@ -124,6 +124,8 @@ const Header: React.FC<HeaderProps> = ({
                     marginLeft: spacing[2],
                   },
                 ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {user.name}
               </Text>
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userName: {
-    maxWidth: 100,
+    maxWidth: 150,
   },
   actionButton: {
     width: 40,
