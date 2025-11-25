@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import Header from '../components/Header';
 import { logout } from '../redux/slices/authSlice';
 import { storageService } from '../utils/storage';
 
@@ -62,33 +63,34 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient
-        colors={['#10B981', '#0EA5E9']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <MotiView
-          from={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 600 }}
-          style={styles.avatarContainer}
-        >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.name?.charAt(0).toUpperCase() || 'T'}
-            </Text>
-          </View>
-        </MotiView>
-        <Text style={styles.userName}>{user?.name || 'Traveler'}</Text>
-        <Text style={styles.userEmail}>{user?.email || 'traveler@gomate.com'}</Text>
-      </LinearGradient>
+      <Header userName={user?.name} />
 
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        <LinearGradient
+          colors={['#10B981', '#0EA5E9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroSection}
+        >
+          <MotiView
+            from={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'timing', duration: 600 }}
+            style={styles.avatarContainer}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.name?.charAt(0).toUpperCase() || 'T'}
+              </Text>
+            </View>
+          </MotiView>
+          <Text style={styles.userName}>{user?.name || 'Traveler'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'traveler@gomate.com'}</Text>
+        </LinearGradient>
         <MotiView
           from={{ opacity: 0, translateY: 30 }}
           animate={{ opacity: 1, translateY: 0 }}
@@ -214,12 +216,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 50,
+  heroSection: {
+    paddingTop: 40,
+    paddingBottom: 40,
     alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 25,
+    borderRadius: 24,
   },
   avatarContainer: {
     marginBottom: 15,

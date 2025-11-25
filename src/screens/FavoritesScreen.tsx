@@ -11,6 +11,7 @@ import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
+import Header from '../components/Header';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { removeFavorite, setFavorites } from '../redux/slices/favoritesSlice';
 import { storageService } from '../utils/storage';
@@ -92,24 +93,7 @@ export default function FavoritesScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient
-        colors={['#10B981', '#0EA5E9']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.iconContainer}>
-            <Feather name="heart" size={32} color="#fff" />
-          </View>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.title}>My Favorites</Text>
-            <Text style={styles.subtitle}>
-              {favoritePlaces.length} {favoritePlaces.length === 1 ? 'place' : 'places'} saved
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
+      <Header />
 
       {favoritePlaces.length === 0 ? (
         <MotiView
@@ -139,6 +123,26 @@ export default function FavoritesScreen({ navigation }: any) {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <LinearGradient
+              colors={['#10B981', '#0EA5E9']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroSection}
+            >
+              <View style={styles.heroContent}>
+                <View style={styles.iconContainer}>
+                  <Feather name="heart" size={32} color="#fff" />
+                </View>
+                <View style={styles.headerTextContainer}>
+                  <Text style={styles.title}>My Favorites</Text>
+                  <Text style={styles.subtitle}>
+                    {favoritePlaces.length} {favoritePlaces.length === 1 ? 'place' : 'places'} saved
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+          }
         />
       )}
     </View>
@@ -149,14 +153,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 60,
+  heroSection: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingVertical: 30,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    borderRadius: 24,
   },
-  headerContent: {
+  heroContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
@@ -173,7 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     marginBottom: 4,
     color: '#fff',
@@ -184,7 +189,7 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   listContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
   },
   card: {
     flexDirection: 'row',

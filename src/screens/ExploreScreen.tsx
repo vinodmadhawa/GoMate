@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 import { useTheme } from '../context/ThemeContext';
+import Header from '../components/Header';
 
 const { width } = Dimensions.get('window');
 
@@ -28,33 +29,23 @@ const ExploreScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <LinearGradient
-        colors={['#10B981', '#0EA5E9']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View style={styles.headerTop}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>GM</Text>
-            </View>
-            <View>
-              <Text style={styles.appTitle}>GoMate</Text>
-              <Text style={styles.appSubtitle}>Explore Sri Lanka</Text>
-            </View>
-          </View>
-        </View>
-        <Text style={styles.headerTitle}>Explore Categories</Text>
-        <Text style={styles.headerSubtitle}>
-          Browse destinations by type and interest
-        </Text>
-      </LinearGradient>
+      <Header />
 
       <ScrollView
         style={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <LinearGradient
+          colors={['#10B981', '#0EA5E9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroSection}
+        >
+          <Text style={styles.headerTitle}>Explore Categories</Text>
+          <Text style={styles.headerSubtitle}>
+            Browse destinations by type and interest
+          </Text>
+        </LinearGradient>
 
         <MotiView
           from={{ opacity: 0, scale: 0.9 }}
@@ -125,47 +116,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 50,
+  scrollContent: {
+    flex: 1,
+  },
+  heroSection: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appSubtitle: {
-    fontSize: 12,
-    color: '#fff',
-    opacity: 0.9,
-    marginTop: 2,
+    paddingVertical: 40,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 32,
+    borderRadius: 24,
   },
   headerTitle: {
     fontSize: 28,
@@ -178,9 +138,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     opacity: 0.95,
     lineHeight: 20,
-  },
-  scrollContent: {
-    flex: 1,
   },
   mapCardContainer: {
     marginHorizontal: 20,

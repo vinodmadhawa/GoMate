@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import Header from '../components/Header';
 import { addFavorite, removeFavorite } from '../redux/slices/favoritesSlice';
 import { logout } from '../redux/slices/authSlice';
 import { storageService } from '../utils/storage';
@@ -33,24 +34,6 @@ export default function HomeScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await storageService.removeUser();
-            dispatch(logout());
-          },
-        },
-      ]
-    );
-  };
 
   const categories = ['All', 'Historical', 'Nature', 'Beach', 'Wildlife', 'Religious'];
 
@@ -182,49 +165,7 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Fixed Header */}
-      <LinearGradient
-        colors={['#10B981', '#0EA5E9']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View style={styles.headerTop}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>GM</Text>
-            </View>
-            <View>
-              <Text style={styles.appTitle}>GoMate</Text>
-              <Text style={styles.appSubtitle}>Explore Sri Lanka</Text>
-            </View>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.navigate('Profile')}
-            >
-              <Feather name="user" size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={toggleTheme}
-            >
-              <Feather name={isDark ? 'sun' : 'moon'} size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={handleLogout}
-            >
-              <Feather name="log-out" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <Text style={styles.headerTitle}>Discover Sri Lanka</Text>
-        <Text style={styles.headerSubtitle}>
-          Explore breathtaking destinations with convenient transport options
-        </Text>
-      </LinearGradient>
+      <Header userName={user?.name} />
 
       {/* Scrollable Content */}
       <FlatList
@@ -242,6 +183,17 @@ export default function HomeScreen({ navigation }: any) {
         }
         ListHeaderComponent={
           <View>
+            <LinearGradient
+              colors={['#10B981', '#0EA5E9']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroSection}
+            >
+              <Text style={styles.headerTitle}>Discover Sri Lanka</Text>
+              <Text style={styles.headerSubtitle}>
+                Explore breathtaking destinations with convenient transport options
+              </Text>
+            </LinearGradient>
             <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
               <Feather name="search" size={20} color={theme.colors.textSecondary} />
               <TextInput
@@ -294,60 +246,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 50,
+  listContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  heroSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    marginHorizontal: 20,
+    marginTop: 20,
     marginBottom: 20,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  appSubtitle: {
-    fontSize: 12,
-    color: '#fff',
-    opacity: 0.9,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 24,
   },
   headerTitle: {
     fontSize: 28,
@@ -360,10 +268,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     opacity: 0.95,
     lineHeight: 20,
-  },
-  listContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
   },
   searchContainer: {
     flexDirection: 'row',
