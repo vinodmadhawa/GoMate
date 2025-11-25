@@ -31,7 +31,8 @@ const ExploreScreen = () => {
   const totalRoutes = destinations.reduce((sum, dest) => sum + dest.transport.length, 0);
 
   const handleCategoryPress = (category: Category) => {
-    navigation.navigate('Home' as never, { category } as never);
+    // @ts-ignore - Navigation typing
+    navigation.navigate('Home', { category });
   };
 
   return (
