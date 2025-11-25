@@ -1,291 +1,182 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   FlatList,
-  TouchableOpacity,
-  Image,
+  Pressable,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
-import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme';
+import { useFavorites } from '../context/FavoritesContext';
+import { destinations } from '../data/destinations';
 import Header from '../components/Header';
-import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { removeFavorite, setFavorites } from '../redux/slices/favoritesSlice';
-import { storageService } from '../utils/storage';
-import { sriLankanPlaces } from '../data/places';
-import { Place } from '../types';
+import DestinationCard from '../components/DestinationCard';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function FavoritesScreen({ navigation }: any) {
-  const { theme } = useTheme();
-  const dispatch = useAppDispatch();
-  const favorites = useAppSelector(state => state.favorites.items);
+const FavoritesScreen = () => {
+  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const { favorites } = useFavorites();
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  const favoriteDestinations = destinations.filter((dest) => favorites.includes(dest.id));
 
-  useEffect(() => {
-    saveFavorites();
-  }, [favorites]);
+  const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
 
-  const loadFavorites = async () => {
-    const savedFavorites = await storageService.getFavorites();
-    dispatch(setFavorites(savedFavorites));
-  };
-
-  const saveFavorites = async () => {
-    await storageService.saveFavorites(favorites);
-  };
-
-  const favoritePlaces = sriLankanPlaces.filter(place => favorites.includes(place.id));
-
-  const handleRemoveFavorite = (placeId: string) => {
-    dispatch(removeFavorite(placeId));
-  };
-
-  const renderFavoriteCard = ({ item, index }: { item: Place; index: number }) => (
-    <MotiView
-      from={{ opacity: 0, translateX: -50 }}
-      animate={{ opacity: 1, translateX: 0 }}
-      transition={{ type: 'timing', duration: 500, delay: index * 100 }}
-      style={[styles.card, { backgroundColor: theme.colors.card }]}
-    >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => navigation.navigate('Details', { place: item })}
-        style={styles.cardContent}
+  const renderHeader = () => (
+    <View style={[styles.headerSection, { marginBottom: spacing[6] }]}>
+      <LinearGradient
+        colors={gradients.primary.colors}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
+        style={[styles.gradientHeader, { borderRadius: borderRadius['3xl'], padding: spacing[8] }]}
       >
-        <Image source={{ uri: item.image }} style={styles.image} />
-        <View style={styles.info}>
-          <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <View style={styles.locationRow}>
-            <Feather name="map-pin" size={12} color={theme.colors.textSecondary} />
-            <Text style={[styles.province, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-              {item.province}
-            </Text>
-          </View>
-          <View style={styles.footer}>
-            <View style={styles.ratingContainer}>
-              <Feather name="star" size={14} color="#F59E0B" fill="#F59E0B" />
-              <Text style={[styles.rating, { color: theme.colors.text }]}>{item.rating}</Text>
-            </View>
-            <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primary + '20' }]}>
-              <Text style={[styles.category, { color: theme.colors.primary }]}>
-                {item.category}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => handleRemoveFavorite(item.id)}
+        <Feather name="heart" size={48} color="#FFFFFF" style={{ marginBottom: spacing[4] }} />
+        <Text
+          style={[
+            styles.title,
+            {
+              fontSize: typography.fontSize['3xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: '#FFFFFF',
+              marginBottom: spacing[2],
+            },
+          ]}
+        >
+          My Favorites
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            {
+              fontSize: typography.fontSize.base,
+              color: 'rgba(255, 255, 255, 0.9)',
+            },
+          ]}
+        >
+          Your saved destinations
+        </Text>
+      </LinearGradient>
+    </View>
+  );
+
+  const renderEmptyState = () => (
+    <View style={[styles.emptyState, { paddingVertical: spacing[12] }]}>
+      <Feather name="heart" size={64} color={colors.mutedForeground} style={{ marginBottom: spacing[4] }} />
+      <Text
+        style={[
+          styles.emptyTitle,
+          {
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.foreground,
+            marginBottom: spacing[2],
+          },
+        ]}
       >
-        <Feather name="x" size={20} color="#EF4444" />
-      </TouchableOpacity>
-    </MotiView>
+        No favorites yet
+      </Text>
+      <Text
+        style={[
+          styles.emptyDescription,
+          {
+            fontSize: typography.fontSize.base,
+            color: colors.mutedForeground,
+            marginBottom: spacing[4],
+          },
+        ]}
+      >
+        Start exploring destinations
+      </Text>
+      <Pressable
+        style={[
+          styles.exploreButton,
+          {
+            backgroundColor: colors.primary,
+            borderRadius: borderRadius.lg,
+            paddingHorizontal: spacing[6],
+            paddingVertical: spacing[3],
+          },
+        ]}
+        onPress={() => navigation.navigate('Home' as never)}
+      >
+        <Text
+          style={[
+            styles.exploreButtonText,
+            {
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.semibold,
+              color: '#FFFFFF',
+            },
+          ]}
+        >
+          Explore
+        </Text>
+      </Pressable>
+    </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
       <Header />
-
-      {favoritePlaces.length === 0 ? (
-        <MotiView
-          from={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 600 }}
-          style={styles.emptyContainer}
-        >
-          <Feather name="heart" size={80} color={theme.colors.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-            No Favorites Yet
-          </Text>
-          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-            Start exploring and save your favorite destinations
-          </Text>
-          <TouchableOpacity
-            style={[styles.exploreButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => navigation.navigate('Home')}
-          >
-            <Text style={styles.exploreButtonText}>Explore Destinations</Text>
-          </TouchableOpacity>
-        </MotiView>
-      ) : (
-        <FlatList
-          data={favoritePlaces}
-          renderItem={renderFavoriteCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <LinearGradient
-              colors={['#10B981', '#0EA5E9']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroSection}
-            >
-              <View style={styles.heroContent}>
-                <View style={styles.iconContainer}>
-                  <Feather name="heart" size={32} color="#fff" />
-                </View>
-                <View style={styles.headerTextContainer}>
-                  <Text style={styles.title}>My Favorites</Text>
-                  <Text style={styles.subtitle}>
-                    {favoritePlaces.length} {favoritePlaces.length === 1 ? 'place' : 'places'} saved
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
-          }
-        />
-      )}
-    </View>
+      <FlatList
+        data={favoriteDestinations}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <DestinationCard destination={item} />}
+        numColumns={numColumns}
+        key={numColumns}
+        contentContainerStyle={[
+          styles.listContent,
+          {
+            paddingHorizontal: spacing[4],
+            paddingTop: spacing[6],
+            paddingBottom: spacing[20],
+          },
+        ]}
+        columnWrapperStyle={numColumns > 1 ? { gap: spacing[6] } : undefined}
+        ItemSeparatorComponent={() => <View style={{ height: spacing[6] }} />}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        showsVerticalScrollIndicator={false}
+      />
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  heroSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 20,
-    borderRadius: 24,
+  listContent: {
+    flexGrow: 1,
   },
-  heroContent: {
-    flexDirection: 'row',
+  headerSection: {},
+  gradientHeader: {
     alignItems: 'center',
-    gap: 16,
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTextContainer: {
-    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-    color: '#fff',
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.95,
+    textAlign: 'center',
   },
-  listContainer: {
-    paddingHorizontal: 20,
-  },
-  card: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  cardContent: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  image: {
-    width: 100,
-    height: 120,
-    resizeMode: 'cover',
-  },
-  info: {
-    flex: 1,
-    padding: 15,
-    justifyContent: 'space-between',
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 5,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  province: {
-    fontSize: 12,
-    marginLeft: 4,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  category: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 15,
-    padding: 5,
-  },
-  emptyContainer: {
-    flex: 1,
+  emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
   },
   emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  emptyText: {
-    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 30,
   },
-  exploreButton: {
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+  emptyDescription: {
+    textAlign: 'center',
   },
-  exploreButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  exploreButton: {},
+  exploreButtonText: {},
 });
+
+export default FavoritesScreen;

@@ -3,407 +3,280 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
+  Pressable,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
-  Dimensions,
+  StatusBar,
 } from 'react-native';
-import { MotiView } from 'moti';
-import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../context/ThemeContext';
-import { useAppDispatch } from '../redux/hooks';
-import { loginSuccess } from '../redux/slices/authSlice';
-import { mockAuthAPI } from '../services/api';
-import { storageService } from '../utils/storage';
-import { loginSchema, registerSchema } from '../utils/validation';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
-const { width } = Dimensions.get('window');
-
-export default function AuthScreen() {
-  const { theme } = useTheme();
-  const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+const AuthScreen = () => {
+  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const { login, register } = useAuth();
+  const navigation = useNavigation();
   
-  // Login fields
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
-  // Register fields
-  const [registerName, setRegisterName] = useState('');
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const [errors, setErrors] = useState<any>({});
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    try {
-      setErrors({});
-      await loginSchema.validate({ email, password }, { abortEarly: false });
-      
-      setLoading(true);
-      const user = await mockAuthAPI.login(email, password);
-      await storageService.saveUser(user);
-      dispatch(loginSuccess(user));
-    } catch (error: any) {
-      setLoading(false);
-      if (error.name === 'ValidationError') {
-        const validationErrors: any = {};
-        error.inner.forEach((err: any) => {
-          validationErrors[err.path] = err.message;
-        });
-        setErrors(validationErrors);
-      } else {
-        Alert.alert('Error', error.message || 'Login failed');
+  const handleSubmit = async () => {
+    if (isLogin) {
+      const success = await login(email, password);
+      if (success) {
+        navigation.navigate('Main' as never);
       }
-    }
-  };
-
-  const handleRegister = async () => {
-    try {
-      setErrors({});
-      await registerSchema.validate(
-        { name: registerName, email: registerEmail, password: registerPassword, confirmPassword },
-        { abortEarly: false }
-      );
-      
-      setLoading(true);
-      const user = await mockAuthAPI.register(registerName, registerEmail, registerPassword);
-      await storageService.saveUser(user);
-      dispatch(loginSuccess(user));
-    } catch (error: any) {
-      setLoading(false);
-      if (error.name === 'ValidationError') {
-        const validationErrors: any = {};
-        error.inner.forEach((err: any) => {
-          validationErrors[err.path] = err.message;
-        });
-        setErrors(validationErrors);
-      } else {
-        Alert.alert('Error', error.message || 'Registration failed');
+    } else {
+      const success = await register(name, email, password);
+      if (success) {
+        navigation.navigate('Main' as never);
       }
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
       >
-        <LinearGradient
-          colors={['#10B981', '#0EA5E9']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <MotiView
-            from={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'timing', duration: 600 }}
-            style={styles.logoContainer}
-          >
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>GM</Text>
-            </View>
-          </MotiView>
-          <Text style={styles.title}>Welcome to GoMate</Text>
-          <Text style={styles.subtitle}>
-            Explore the beauty of Sri Lanka
-          </Text>
-        </LinearGradient>
-
-        <MotiView
-          from={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 500, delay: 200 }}
-          style={[styles.formCard, { backgroundColor: theme.colors.card }]}
-        >
-          <View style={styles.formHeader}>
-            <Feather name="log-in" size={28} color={theme.colors.primary} />
-            <Text style={[styles.formTitle, { color: theme.colors.text }]}>Get Started</Text>
-          </View>
-          <Text style={[styles.formSubtitle, { color: theme.colors.textSecondary }]}>
-            Login or create a new account
-          </Text>
-
-          {/* Tabs */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'login' && { backgroundColor: theme.colors.background },
-              ]}
-              onPress={() => setActiveTab('login')}
+        <ScrollView contentContainerStyle={[styles.scrollContent, { padding: spacing[6] }]}>
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <LinearGradient
+              colors={gradients.primary.colors}
+              start={gradients.primary.start}
+              end={gradients.primary.end}
+              style={[styles.logo, { borderRadius: spacing[5] }]}
             >
+              <Text style={[styles.logoText, { fontSize: typography.fontSize['3xl'] }]}>
+                GM
+              </Text>
+            </LinearGradient>
+            
+            <Text
+              style={[
+                styles.appTitle,
+                {
+                  fontSize: typography.fontSize['3xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.foreground,
+                  marginTop: spacing[4],
+                },
+              ]}
+            >
+              GoMate
+            </Text>
+            
+            <Text
+              style={[
+                styles.appSubtitle,
+                {
+                  fontSize: typography.fontSize.base,
+                  color: colors.mutedForeground,
+                  marginTop: spacing[1],
+                },
+              ]}
+            >
+              Explore Sri Lanka
+            </Text>
+          </View>
+
+          {/* Tab Switcher */}
+          <View style={[styles.tabSwitcher, { marginVertical: spacing[8] }]}>
+            <Pressable onPress={() => setIsLogin(true)} style={styles.tab}>
               <Text
                 style={[
                   styles.tabText,
-                  activeTab === 'login'
-                    ? { color: theme.colors.text, fontWeight: '600' }
-                    : { color: theme.colors.textSecondary },
+                  {
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: isLogin ? colors.primary : colors.mutedForeground,
+                    paddingHorizontal: spacing[6],
+                    paddingVertical: spacing[3],
+                    borderBottomWidth: 2,
+                    borderBottomColor: isLogin ? colors.primary : 'transparent',
+                  },
                 ]}
               >
                 Login
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'register' && { backgroundColor: theme.colors.background },
-              ]}
-              onPress={() => setActiveTab('register')}
-            >
+            </Pressable>
+            <Pressable onPress={() => setIsLogin(false)} style={styles.tab}>
               <Text
                 style={[
                   styles.tabText,
-                  activeTab === 'register'
-                    ? { color: theme.colors.text, fontWeight: '600' }
-                    : { color: theme.colors.textSecondary },
+                  {
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: !isLogin ? colors.primary : colors.mutedForeground,
+                    paddingHorizontal: spacing[6],
+                    paddingVertical: spacing[3],
+                    borderBottomWidth: 2,
+                    borderBottomColor: !isLogin ? colors.primary : 'transparent',
+                  },
                 ]}
               >
                 Register
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
-          {activeTab === 'login' ? (
-            <MotiView
-              key="login"
-              from={{ opacity: 0, translateX: -20 }}
-              animate={{ opacity: 1, translateX: 0 }}
-              transition={{ type: 'timing', duration: 300 }}
+          {/* Form */}
+          <View style={styles.form}>
+            {!isLogin && (
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: colors.input,
+                    backgroundColor: colors.background,
+                    color: colors.foreground,
+                    fontSize: typography.fontSize.base,
+                    borderRadius: borderRadius.md,
+                    paddingHorizontal: spacing[3],
+                    height: 48,
+                    marginBottom: spacing[4],
+                  },
+                ]}
+                placeholder="Name"
+                placeholderTextColor={colors.mutedForeground}
+                value={name}
+                onChangeText={setName}
+              />
+            )}
+            
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.input,
+                  backgroundColor: colors.background,
+                  color: colors.foreground,
+                  fontSize: typography.fontSize.base,
+                  borderRadius: borderRadius.md,
+                  paddingHorizontal: spacing[3],
+                  height: 48,
+                  marginBottom: spacing[4],
+                },
+              ]}
+              placeholder="Email"
+              placeholderTextColor={colors.mutedForeground}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.input,
+                  backgroundColor: colors.background,
+                  color: colors.foreground,
+                  fontSize: typography.fontSize.base,
+                  borderRadius: borderRadius.md,
+                  paddingHorizontal: spacing[3],
+                  height: 48,
+                },
+              ]}
+              placeholder="Password"
+              placeholderTextColor={colors.mutedForeground}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            
+            <Pressable
+              style={[
+                styles.submitButton,
+                {
+                  backgroundColor: colors.primary,
+                  borderRadius: borderRadius.md,
+                  height: 48,
+                  marginTop: spacing[6],
+                },
+              ]}
+              onPress={handleSubmit}
             >
-              <Text style={[styles.label, { color: theme.colors.text }]}>Email</Text>
-              <TextInput
+              <Text
                 style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.background, color: theme.colors.text },
+                  styles.submitText,
+                  {
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.bold,
+                    color: '#FFFFFF',
+                  },
                 ]}
-                placeholder="your@email.com"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-              <Text style={[styles.label, { color: theme.colors.text }]}>Password</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.background, color: theme.colors.text },
-                ]}
-                placeholder="••••••••"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.colors.primary }]}
-                onPress={handleLogin}
-                disabled={loading}
               >
-                <Text style={styles.buttonText}>{loading ? 'Signing In...' : 'Login'}</Text>
-              </TouchableOpacity>
-            </MotiView>
-          ) : (
-            <MotiView
-              key="register"
-              from={{ opacity: 0, translateX: 20 }}
-              animate={{ opacity: 1, translateX: 0 }}
-              transition={{ type: 'timing', duration: 300 }}
-            >
-              <Text style={[styles.label, { color: theme.colors.text }]}>Full Name</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.background, color: theme.colors.text },
-                ]}
-                placeholder="John Doe"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={registerName}
-                onChangeText={setRegisterName}
-              />
-              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-
-              <Text style={[styles.label, { color: theme.colors.text }]}>Email</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.background, color: theme.colors.text },
-                ]}
-                placeholder="your@email.com"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={registerEmail}
-                onChangeText={setRegisterEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-              <Text style={[styles.label, { color: theme.colors.text }]}>Password</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.background, color: theme.colors.text },
-                ]}
-                placeholder="••••••••"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={registerPassword}
-                onChangeText={setRegisterPassword}
-                secureTextEntry
-              />
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.colors.primary }]}
-                onPress={handleRegister}
-                disabled={loading}
-              >
-                <Text style={styles.buttonText}>
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </Text>
-              </TouchableOpacity>
-            </MotiView>
-          )}
-        </MotiView>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+                {isLogin ? 'Login' : 'Register'}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 40,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
-  headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
+  logoSection: {
     alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    marginBottom: 30,
-  },
-  logoContainer: {
-    marginBottom: 20,
   },
   logo: {
     width: 80,
     height: 80,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
   },
   logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#fff',
+  appTitle: {
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#fff',
-    opacity: 0.95,
+  appSubtitle: {
     textAlign: 'center',
   },
-  formCard: {
-    borderRadius: 24,
-    padding: 28,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  formHeader: {
+  tabSwitcher: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
+    justifyContent: 'center',
+    gap: 16,
   },
-  formTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-  },
-  formSubtitle: {
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 24,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  tabText: {
-    fontSize: 15,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 8,
+  tab: {},
+  tabText: {},
+  form: {
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   input: {
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'transparent',
   },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginTop: -12,
-    marginBottom: 8,
-  },
-  button: {
-    paddingVertical: 16,
-    borderRadius: 12,
+  submitButton: {
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  submitText: {},
 });
+
+export default AuthScreen;

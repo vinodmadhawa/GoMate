@@ -1,72 +1,29 @@
 export interface User {
   id: string;
+  name: string;
   email: string;
-  name: string;
-  username: string;
-  token: string;
+  password?: string;
 }
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-}
-
-export interface Place {
+export interface Destination {
   id: string;
   name: string;
-  description: string;
-  category: string;
-  image: string;
-  status: 'Popular' | 'Trending' | 'Featured' | 'Hidden Gem';
+  location: string;
+  image: any;
   rating: number;
-  province: string;
-  bestTime: string;
-  entryFee: string;
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  transportOptions: TransportOption[];
-  highlights: string[];
-}
-
-export interface TransportOption {
-  id: string;
-  type: 'Bus' | 'Train' | 'Taxi' | 'Tuk-Tuk' | 'Private Vehicle';
-  from: string;
-  to: string;
-  duration: string;
-  cost: string;
-  frequency: string;
+  category: 'Cultural' | 'Nature' | 'Adventure' | 'Beach' | 'Historical';
   description: string;
-  icon: string;
+  transport: Transport[];
+  status: 'Popular' | 'Trending' | 'Must Visit';
+  bestTimeToVisit: string;
+  fullDescription: string;
 }
 
-export interface FavoritesState {
-  items: string[];
+export interface Transport {
+  type: 'train' | 'bus' | 'taxi' | 'tuk-tuk';
+  from: string;
+  price: string;
+  duration: string;
 }
 
-export interface ThemeColors {
-  primary: string;
-  secondary: string;
-  background: string;
-  card: string;
-  text: string;
-  textSecondary: string;
-  border: string;
-  success: string;
-  error: string;
-  warning: string;
-  info: string;
-  overlay: string;
-  tabBarActive: string;
-  tabBarInactive: string;
-  inputBackground: string;
-  shadow: string;
-}
-
-export interface Theme {
-  dark: boolean;
-  colors: ThemeColors;
-}
+export type Category = 'all' | 'Cultural' | 'Nature' | 'Adventure' | 'Beach' | 'Historical';

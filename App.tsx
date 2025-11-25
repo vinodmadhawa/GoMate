@@ -1,10 +1,11 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Provider } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform, View } from 'react-native';
-import { store } from './src/redux/store';
-import { ThemeProvider } from './src/context/ThemeContext';
+import Toast from 'react-native-toast-message';
+import { ThemeProvider } from './src/theme';
+import { AuthProvider } from './src/context/AuthContext';
+import { FavoritesProvider } from './src/context/FavoritesContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -13,12 +14,15 @@ export default function App() {
   
   return (
     <RootComponent style={{ flex: 1 }}>
-      <Provider store={store}>
-        <ThemeProvider>
-          <AppNavigator />
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </Provider>
+      <ThemeProvider>
+        <AuthProvider>
+          <FavoritesProvider>
+            <AppNavigator />
+            <StatusBar style="auto" />
+            <Toast />
+          </FavoritesProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </RootComponent>
   );
 }

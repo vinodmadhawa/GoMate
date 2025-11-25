@@ -3,196 +3,215 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Alert,
   Platform,
-  StatusBar,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
-import { useTheme } from '../context/ThemeContext';
-import { useAppDispatch } from '../redux/hooks';
-import { logout } from '../redux/slices/authSlice';
-import { storageService } from '../utils/storage';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme';
+import { useAuth } from '../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface HeaderProps {
+  showUserBadge?: boolean;
   showActions?: boolean;
-  showBackButton?: boolean;
-  userName?: string;
 }
 
-export default function Header({
+const Header: React.FC<HeaderProps> = ({ 
+  showUserBadge = true,
   showActions = true,
-  showBackButton = false,
-  userName,
-}: HeaderProps) {
-  const { theme, toggleTheme, isDark } = useTheme();
-  const dispatch = useAppDispatch();
-  const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
+}) => {
+  const { colors, typography, spacing, borderRadius, theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
         {
           text: 'Logout',
-          style: 'destructive',
           onPress: async () => {
-            await storageService.removeUser();
-            dispatch(logout());
+            await logout();
           },
+          style: 'destructive',
         },
       ]
     );
   };
 
   return (
-    <View style={[styles.header, { 
-      paddingTop: insets.top > 0 ? insets.top + 12 : 50,
-      backgroundColor: theme.colors.background 
-    }]}>
-      <View style={styles.headerTop}>
-        {showBackButton ? (
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
+    <View style={[styles.container, { borderBottomColor: `${colors.border}66` }]}>
+      <BlurView
+        intensity={80}
+        tint={theme === 'light' ? 'light' : 'dark'}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.content, { paddingHorizontal: spacing[4] }]}>
+        {/* Logo and Title Section */}
+        <View style={styles.leftSection}>
+          <LinearGradient
+            colors={['#34D399', '#0EA5E9']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.logo, { borderRadius: borderRadius.sm }]}
           >
-            <Feather name="arrow-left" size={24} color="#fff" />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>GM</Text>
-            </View>
-            <View style={styles.logoTextContainer}>
-              <Text style={[styles.appTitle, { color: theme.colors.text }]}>GoMate</Text>
-              <Text style={[styles.appSubtitle, { color: theme.colors.textSecondary }]}>
-                Explore Sri Lanka
+            <Text style={[styles.logoText, { fontSize: typography.fontSize.xl }]}>
+              GM
+            </Text>
+          </LinearGradient>
+          <View style={styles.titleContainer}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  fontSize: typography.fontSize.xl,
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.foreground,
+                },
+              ]}
+            >
+              GoMate
+            </Text>
+            <Text
+              style={[
+                styles.subtitle,
+                {
+                  fontSize: typography.fontSize.xs,
+                  color: colors.mutedForeground,
+                },
+              ]}
+            >
+              Explore Sri Lanka
+            </Text>
+          </View>
+        </View>
+
+        {/* Right Section - User Badge and Actions */}
+        <View style={styles.rightSection}>
+          {/* User Badge (hidden on small screens in production) */}
+          {showUserBadge && user && (
+            <View
+              style={[
+                styles.userBadge,
+                {
+                  backgroundColor: colors.muted,
+                  paddingHorizontal: spacing[3],
+                  paddingVertical: spacing[1] + 2,
+                  borderRadius: borderRadius.md,
+                },
+              ]}
+            >
+              <Feather name="user" size={16} color={colors.primary} />
+              <Text
+                style={[
+                  styles.userName,
+                  {
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.foreground,
+                    marginLeft: spacing[2],
+                  },
+                ]}
+              >
+                {user.name}
               </Text>
             </View>
-          </View>
-        )}
+          )}
 
-        {showActions && (
-          <View style={styles.headerActions}>
-            {userName ? (
-              <View style={styles.userInfo}>
-                <Feather name="user" size={16} color="#fff" />
-                <Text style={styles.userName} numberOfLines={1}>
-                  {userName}
-                </Text>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => navigation.navigate('Profile' as never)}
+          {/* Action Buttons */}
+          {showActions && (
+            <>
+              {/* Theme Toggle Button */}
+              <Pressable
+                style={styles.actionButton}
+                onPress={toggleTheme}
               >
-                <Feather name="user" size={20} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={toggleTheme}
-            >
-              <Feather name={isDark ? 'sun' : 'moon'} size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={handleLogout}
-            >
-              <Feather name="log-out" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        )}
+                <Feather
+                  name={theme === 'light' ? 'moon' : 'sun'}
+                  size={20}
+                  color={colors.foreground}
+                />
+              </Pressable>
+
+              {/* Logout Button (if logged in) */}
+              {user && (
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={handleLogout}
+                >
+                  <Feather name="log-out" size={20} color={colors.foreground} />
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+  container: {
+    height: 64,
+    borderBottomWidth: 1,
+    overflow: 'hidden',
   },
-  headerTop: {
+  content: {
+    flex: 1,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 8 : 0,
+  },
+  leftSection: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: {
+  logo: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  logoContainer: {
+  logoText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  titleContainer: {
+    marginLeft: 12,
+  },
+  title: {
+    lineHeight: 24,
+  },
+  subtitle: {
+    lineHeight: 14,
+  },
+  rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    flex: 1,
   },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  logoTextContainer: {
-    flex: 1,
-  },
-  appTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  appSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  headerActions: {
+  userBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flexShrink: 0,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#10B981',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    maxWidth: 140,
   },
   userName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
+    maxWidth: 100,
   },
-  headerButton: {
+  actionButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });
+
+export default Header;

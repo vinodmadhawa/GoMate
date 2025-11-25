@@ -3,343 +3,240 @@ import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Alert,
+  StatusBar,
   Switch,
 } from 'react-native';
-import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../context/ThemeContext';
-import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme';
+import { useAuth } from '../context/AuthContext';
+import { useFavorites } from '../context/FavoritesContext';
 import Header from '../components/Header';
-import { logout } from '../redux/slices/authSlice';
-import { storageService } from '../utils/storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function ProfileScreen({ navigation }: any) {
-  const { theme, isDark, toggleTheme } = useTheme();
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(state => state.auth.user);
-  const favorites = useAppSelector(state => state.favorites.items);
+const ProfileScreen = () => {
+  const { colors, typography, spacing, borderRadius, gradients, theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const { favorites } = useFavorites();
+  const navigation = useNavigation();
 
   const handleLogout = () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
         {
           text: 'Logout',
-          style: 'destructive',
           onPress: async () => {
-            await storageService.removeUser();
-            dispatch(logout());
+            await logout();
+            navigation.navigate('Auth' as never);
           },
+          style: 'destructive',
         },
       ]
     );
   };
 
-  const ProfileOption = ({ icon, title, subtitle, onPress, showArrow = true }: any) => (
-    <TouchableOpacity
-      style={[styles.optionCard, { backgroundColor: theme.colors.card }]}
-      onPress={onPress}
-    >
-      <View style={[styles.optionIcon, { backgroundColor: theme.colors.primary + '20' }]}>
-        <Feather name={icon} size={22} color={theme.colors.primary} />
-      </View>
-      <View style={styles.optionContent}>
-        <Text style={[styles.optionTitle, { color: theme.colors.text }]}>{title}</Text>
-        {subtitle && (
-          <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      {showArrow && <Feather name="chevron-right" size={20} color={theme.colors.textSecondary} />}
-    </TouchableOpacity>
-  );
+  const menuItems = [
+    { icon: 'user', label: 'Account Settings', onPress: () => {} },
+    { icon: 'heart', label: `Favorites (${favorites.length})`, onPress: () => navigation.navigate('Favorites' as never) },
+    { icon: 'moon', label: 'Dark Mode', onPress: () => {}, isToggle: true },
+    { icon: 'info', label: 'About', onPress: () => {} },
+    { icon: 'log-out', label: 'Logout', onPress: handleLogout, isDestructive: true },
+  ];
+
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    return names.map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Header userName={user?.name} />
-
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
+      <Header />
       <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingHorizontal: spacing[4],
+            paddingTop: spacing[6],
+            paddingBottom: spacing[20],
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Profile Header Section */}
         <LinearGradient
-          colors={['#10B981', '#0EA5E9']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroSection}
+          colors={gradients.primary.colors}
+          start={gradients.primary.start}
+          end={gradients.primary.end}
+          style={[
+            styles.profileHeader,
+            {
+              borderRadius: borderRadius['3xl'],
+              padding: spacing[8],
+              marginBottom: spacing[6],
+            },
+          ]}
         >
-          <MotiView
-            from={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'timing', duration: 600 }}
-            style={styles.avatarContainer}
+          <View
+            style={[
+              styles.avatar,
+              {
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                marginBottom: spacing[4],
+              },
+            ]}
           >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0).toUpperCase() || 'T'}
-              </Text>
-            </View>
-          </MotiView>
-          <Text style={styles.userName}>{user?.name || 'Traveler'}</Text>
-          <Text style={styles.userEmail}>{user?.email || 'traveler@gomate.com'}</Text>
+            <Text
+              style={[
+                styles.avatarText,
+                {
+                  fontSize: typography.fontSize['2xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: '#FFFFFF',
+                },
+              ]}
+            >
+              {user ? getInitials(user.name) : 'U'}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.userName,
+              {
+                fontSize: typography.fontSize['2xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: '#FFFFFF',
+                marginBottom: spacing[1],
+              },
+            ]}
+          >
+            {user?.name || 'Guest'}
+          </Text>
+          <Text
+            style={[
+              styles.userEmail,
+              {
+                fontSize: typography.fontSize.sm,
+                color: 'rgba(255, 255, 255, 0.9)',
+              },
+            ]}
+          >
+            {user?.email || 'guest@gomate.com'}
+          </Text>
         </LinearGradient>
-        <MotiView
-          from={{ opacity: 0, translateY: 30 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 600 }}
-        >
-          <View style={styles.statsContainer}>
-            <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
-              <Feather name="heart" size={24} color="#EF4444" />
-              <Text style={[styles.statNumber, { color: theme.colors.text }]}>
-                {favorites.length}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Favorites
-              </Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
-              <Feather name="map-pin" size={24} color="#10B981" />
-              <Text style={[styles.statNumber, { color: theme.colors.text }]}>8</Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Visited
-              </Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
-              <Feather name="award" size={24} color="#F59E0B" />
-              <Text style={[styles.statNumber, { color: theme.colors.text }]}>12</Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Badges
-              </Text>
-            </View>
-          </View>
-        </MotiView>
 
-        <MotiView
-          from={{ opacity: 0, translateY: 30 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 600, delay: 200 }}
-        >
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Preferences
-            </Text>
-
-            <View style={[styles.optionCard, { backgroundColor: theme.colors.card }]}>
-              <View style={[styles.optionIcon, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Feather
-                  name={isDark ? 'moon' : 'sun'}
-                  size={22}
-                  color={theme.colors.primary}
-                />
-              </View>
-              <View style={styles.optionContent}>
-                <Text style={[styles.optionTitle, { color: theme.colors.text }]}>
-                  Dark Mode
-                </Text>
-                <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>
-                  {isDark ? 'Enabled' : 'Disabled'}
-                </Text>
-              </View>
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: '#cbd5e1', true: theme.colors.primary }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            <ProfileOption
-              icon="bell"
-              title="Notifications"
-              subtitle="Manage your notifications"
-              onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon!')}
-            />
-
-            <ProfileOption
-              icon="globe"
-              title="Language"
-              subtitle="English"
-              onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon!')}
-            />
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Support
-            </Text>
-
-            <ProfileOption
-              icon="help-circle"
-              title="Help & Support"
-              subtitle="Get help with the app"
-              onPress={() => Alert.alert('Help', 'Contact us at support@gomate.com')}
-            />
-
-            <ProfileOption
-              icon="info"
-              title="About"
-              subtitle="Version 1.0.0"
-              onPress={() => Alert.alert('About', 'GoMate - Explore Sri Lanka\nVersion 1.0.0')}
-            />
-
-            <ProfileOption
-              icon="file-text"
-              title="Terms & Privacy"
-              subtitle="Read our policies"
-              onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon!')}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.logoutButton, { backgroundColor: '#FEE2E2' }]}
-            onPress={handleLogout}
+        {/* Menu Items */}
+        {menuItems.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={item.onPress}
+            style={[
+              styles.menuItem,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[4],
+                marginBottom: spacing[2],
+              },
+            ]}
           >
-            <Feather name="log-out" size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-        </MotiView>
+            <View style={styles.menuItemLeft}>
+              <Feather
+                name={item.icon as any}
+                size={20}
+                color={item.isDestructive ? colors.destructive : colors.foreground}
+              />
+              <Text
+                style={[
+                  styles.menuItemText,
+                  {
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: item.isDestructive ? colors.destructive : colors.foreground,
+                    marginLeft: spacing[3],
+                  },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </View>
+            {item.isToggle ? (
+              <Switch
+                value={theme === 'dark'}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.muted, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
+            ) : (
+              <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+            )}
+          </Pressable>
+        ))}
+
+        {/* App Version */}
+        <Text
+          style={[
+            styles.appVersion,
+            {
+              fontSize: typography.fontSize.xs,
+              color: colors.mutedForeground,
+              textAlign: 'center',
+              marginTop: spacing[8],
+            },
+          ]}
+        >
+          GoMate v1.0.0
+        </Text>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  heroSection: {
-    paddingTop: 40,
-    paddingBottom: 40,
+  scrollContent: {},
+  profileHeader: {
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 25,
-    borderRadius: 24,
-  },
-  avatarContainer: {
-    marginBottom: 15,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#fff',
-  },
+  avatarText: {},
   userName: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 5,
+    textAlign: 'center',
   },
   userEmail: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
   },
-  content: {
-    flex: 1,
-    marginTop: -20,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  contentContainer: {
-    padding: 20,
-  },
-  statsContainer: {
+  menuItem: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 25,
-  },
-  statCard: {
-    flex: 1,
-    padding: 20,
-    borderRadius: 16,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 10,
-  },
-  statLabel: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 15,
-    paddingHorizontal: 5,
-  },
-  optionCard: {
+  menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
-  optionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
-  },
-  optionContent: {
-    flex: 1,
-  },
-  optionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  optionSubtitle: {
-    fontSize: 13,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 10,
-    marginBottom: 30,
-    gap: 10,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#EF4444',
-  },
+  menuItemText: {},
+  appVersion: {},
 });
+
+export default ProfileScreen;

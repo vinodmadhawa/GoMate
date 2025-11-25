@@ -3,112 +3,292 @@ import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   ScrollView,
-  TouchableOpacity,
-  Dimensions,
+  Pressable,
+  StatusBar,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MotiView } from 'moti';
-import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme';
+import { destinations } from '../data/destinations';
+import { Category } from '../types';
 import Header from '../components/Header';
-
-const { width } = Dimensions.get('window');
+import { LinearGradient } from 'expo-linear-gradient';
 
 const ExploreScreen = () => {
-  const { theme } = useTheme();
+  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const navigation = useNavigation();
 
-  const categories = [
-    { id: '1', name: 'Cultural', icon: 'star', count: '3 places' },
-    { id: '2', name: 'Nature', icon: 'sun', count: '2 places' },
-    { id: '3', name: 'Beach', icon: 'umbrella', count: '2 places' },
-    { id: '4', name: 'Wildlife', icon: 'eye', count: '1 place' },
-    { id: '5', name: 'Adventure', icon: 'zap', count: '2 places' },
-    { id: '6', name: 'Religious', icon: 'home', count: '1 place' },
+  const categories: Array<{ name: Category; icon: string; count: number }> = [
+    { name: 'Cultural', icon: '🏛️', count: destinations.filter((d) => d.category === 'Cultural').length },
+    { name: 'Nature', icon: '🌿', count: destinations.filter((d) => d.category === 'Nature').length },
+    { name: 'Adventure', icon: '⛰️', count: destinations.filter((d) => d.category === 'Adventure').length },
+    { name: 'Beach', icon: '🏖️', count: destinations.filter((d) => d.category === 'Beach').length },
+    { name: 'Historical', icon: '🏰', count: destinations.filter((d) => d.category === 'Historical').length },
   ];
 
-  return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Header />
+  const totalRoutes = destinations.reduce((sum, dest) => sum + dest.transport.length, 0);
 
+  const handleCategoryPress = (category: Category) => {
+    navigation.navigate('Home' as never, { category } as never);
+  };
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
+      <Header />
       <ScrollView
-        style={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingHorizontal: spacing[4],
+            paddingTop: spacing[6],
+            paddingBottom: spacing[20],
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header Section */}
         <LinearGradient
-          colors={['#10B981', '#0EA5E9']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroSection}
+          colors={gradients.primary.colors}
+          start={gradients.primary.start}
+          end={gradients.primary.end}
+          style={[styles.gradientHeader, { borderRadius: borderRadius['3xl'], padding: spacing[8], marginBottom: spacing[6] }]}
         >
-          <Text style={styles.headerTitle}>Explore Categories</Text>
-          <Text style={styles.headerSubtitle}>
-            Browse destinations by type and interest
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize: typography.fontSize['3xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: '#FFFFFF',
+                marginBottom: spacing[2],
+              },
+            ]}
+          >
+            Explore
+          </Text>
+          <Text
+            style={[
+              styles.subtitle,
+              {
+                fontSize: typography.fontSize.base,
+                color: 'rgba(255, 255, 255, 0.9)',
+              },
+            ]}
+          >
+            Discover by category
           </Text>
         </LinearGradient>
 
-        <MotiView
-          from={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 600 }}
-          style={styles.mapCardContainer}
+        {/* Categories Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+              marginBottom: spacing[4],
+            },
+          ]}
         >
-          <LinearGradient
-            colors={['#10B981', '#0EA5E9']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mapCard}
-          >
-            <Feather name="map" size={48} color="#fff" />
-            <Text style={styles.mapTitle}>Interactive Map</Text>
-            <Text style={styles.mapSubtitle}>Coming soon</Text>
-          </LinearGradient>
-        </MotiView>
-
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Browse by Category
+          Categories
         </Text>
 
-        <View style={styles.categoriesGrid}>
-          {categories.map((category, index) => (
-            <MotiView
-              key={category.id}
-              from={{ opacity: 0, translateY: 20 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{
-                type: 'timing',
-                duration: 500,
-                delay: index * 100,
-              }}
-            >
-              <TouchableOpacity
-                style={[styles.categoryCard, { backgroundColor: theme.colors.card }]}
+        {categories.map((category) => (
+          <Pressable
+            key={category.name}
+            style={[
+              styles.categoryCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[5],
+                marginBottom: spacing[3],
+              },
+            ]}
+            onPress={() => handleCategoryPress(category.name)}
+          >
+            <View style={styles.categoryLeft}>
+              <Text style={styles.categoryIcon}>{category.icon}</Text>
+              <Text
+                style={[
+                  styles.categoryName,
+                  {
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.foreground,
+                    marginLeft: spacing[4],
+                  },
+                ]}
               >
-                <View
-                  style={[
-                    styles.categoryIconContainer,
-                    { backgroundColor: `${theme.colors.primary}20` },
-                  ]}
-                >
-                  <Feather name={category.icon as any} size={24} color={theme.colors.primary} />
-                </View>
-                <View style={styles.categoryInfo}>
-                  <Text style={[styles.categoryName, { color: theme.colors.text }]}>
-                    {category.name}
-                  </Text>
-                  <Text style={[styles.categoryCount, { color: theme.colors.textSecondary }]}>
-                    {category.count}
-                  </Text>
-                </View>
-                <Feather name="chevron-right" size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </MotiView>
-          ))}
+                {category.name}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.categoryCount,
+                {
+                  backgroundColor: `${colors.primary}1A`,
+                  borderRadius: borderRadius.full,
+                  paddingHorizontal: spacing[3],
+                  paddingVertical: spacing[1],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryCountText,
+                  {
+                    fontSize: typography.fontSize.sm,
+                    color: colors.primary,
+                  },
+                ]}
+              >
+                ({category.count})
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+
+        {/* Interactive Map Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+              marginTop: spacing[6],
+              marginBottom: spacing[4],
+            },
+          ]}
+        >
+          Interactive Map
+        </Text>
+        <View
+          style={[
+            styles.mapPlaceholder,
+            {
+              backgroundColor: colors.muted,
+              borderColor: colors.border,
+              borderRadius: borderRadius.lg,
+              height: 300,
+              marginBottom: spacing[6],
+            },
+          ]}
+        >
+          <Feather name="map" size={48} color={colors.mutedForeground} style={{ marginBottom: spacing[2] }} />
+          <Text
+            style={[
+              styles.mapPlaceholderText,
+              {
+                fontSize: typography.fontSize.lg,
+                color: colors.mutedForeground,
+              },
+            ]}
+          >
+            Coming Soon...
+          </Text>
         </View>
 
-        <View style={{ height: 30 }} />
+        {/* Quick Stats Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+              marginBottom: spacing[4],
+            },
+          ]}
+        >
+          Quick Stats
+        </Text>
+        <View style={styles.statsContainer}>
+          <View
+            style={[
+              styles.statCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[4],
+                flex: 1,
+                marginRight: spacing[2],
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.statNumber,
+                {
+                  fontSize: typography.fontSize['2xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.primary,
+                  marginBottom: spacing[1],
+                },
+              ]}
+            >
+              {destinations.length}
+            </Text>
+            <Text
+              style={[
+                styles.statLabel,
+                {
+                  fontSize: typography.fontSize.sm,
+                  color: colors.mutedForeground,
+                },
+              ]}
+            >
+              Destinations
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.statCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[4],
+                flex: 1,
+                marginLeft: spacing[2],
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.statNumber,
+                {
+                  fontSize: typography.fontSize['2xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.primary,
+                  marginBottom: spacing[1],
+                },
+              ]}
+            >
+              {totalRoutes}
+            </Text>
+            <Text
+              style={[
+                styles.statLabel,
+                {
+                  fontSize: typography.fontSize.sm,
+                  color: colors.mutedForeground,
+                },
+              ]}
+            >
+              Transport Routes
+            </Text>
+          </View>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -116,98 +296,48 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    flex: 1,
-  },
-  heroSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 32,
-    borderRadius: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 6,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.95,
-    lineHeight: 20,
-  },
-  mapCardContainer: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 32,
-  },
-  mapCard: {
-    padding: 40,
-    borderRadius: 20,
+  scrollContent: {},
+  gradientHeader: {
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 200,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
   },
-  mapTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 16,
+  title: {
+    textAlign: 'center',
   },
-  mapSubtitle: {
-    fontSize: 16,
-    color: '#fff',
-    marginTop: 8,
-    opacity: 0.9,
+  subtitle: {
+    textAlign: 'center',
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginHorizontal: 20,
-    marginBottom: 16,
-  },
-  categoriesGrid: {
-    paddingHorizontal: 20,
-  },
+  sectionTitle: {},
   categoryCard: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
+    borderWidth: 1,
   },
-  categoryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  categoryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryIcon: {
+    fontSize: 32,
+  },
+  categoryName: {},
+  categoryCount: {},
+  categoryCountText: {},
+  mapPlaceholder: {
+    borderWidth: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  mapPlaceholderText: {},
+  statsContainer: {
+    flexDirection: 'row',
+  },
+  statCard: {
+    borderWidth: 1,
     alignItems: 'center',
-    marginRight: 16,
   },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  categoryCount: {
-    fontSize: 14,
-    marginTop: 2,
-  },
+  statNumber: {},
+  statLabel: {},
 });
 
 export default ExploreScreen;

@@ -1,489 +1,325 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
   TextInput,
-  RefreshControl,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  Pressable,
+  StatusBar,
   Dimensions,
-  Alert,
 } from 'react-native';
-import { MotiView } from 'moti';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../context/ThemeContext';
-import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import { useTheme } from '../theme';
+import { destinations } from '../data/destinations';
+import { Category } from '../types';
 import Header from '../components/Header';
-import { addFavorite, removeFavorite } from '../redux/slices/favoritesSlice';
-import { logout } from '../redux/slices/authSlice';
-import { storageService } from '../utils/storage';
-import { sriLankanPlaces } from '../data/places';
-import { Place } from '../types';
+import DestinationCard from '../components/DestinationCard';
 
-const { width } = Dimensions.get('window');
-
-export default function HomeScreen({ navigation }: any) {
-  const { theme, toggleTheme, isDark } = useTheme();
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(state => state.auth.user);
-  const favorites = useAppSelector(state => state.favorites.items);
-  const [places, setPlaces] = useState<Place[]>(sriLankanPlaces);
+const HomeScreen = () => {
+  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState<Category>('all');
 
-  const categories = ['All', 'Historical', 'Nature', 'Beach', 'Wildlife', 'Religious'];
+  const categories: Category[] = ['all', 'Cultural', 'Nature', 'Adventure', 'Beach', 'Historical'];
 
-  useEffect(() => {
-    filterPlaces();
-  }, [searchQuery, selectedCategory]);
+  const filteredDestinations = useMemo(() => {
+    return destinations.filter((dest) => {
+      const matchesSearch =
+        dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const filterPlaces = () => {
-    let filtered = sriLankanPlaces;
+      const matchesCategory = categoryFilter === 'all' || dest.category === categoryFilter;
 
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(place => place.category === selectedCategory);
-    }
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, categoryFilter]);
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        place =>
-          place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          place.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setPlaces(filtered);
+  const getCategoryLabel = () => {
+    return categoryFilter === 'all' ? 'All Destinations' : `${categoryFilter} Destinations`;
   };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setPlaces(sriLankanPlaces);
-      setRefreshing(false);
-    }, 1000);
-  };
-
-  const toggleFavorite = (placeId: string) => {
-    if (favorites.includes(placeId)) {
-      dispatch(removeFavorite(placeId));
-    } else {
-      dispatch(addFavorite(placeId));
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Popular': return '#EF4444';
-      case 'Trending': return '#F59E0B';
-      case 'Featured': return '#3B82F6';
-      case 'Hidden Gem': return '#10B981';
-      default: return theme.colors.primary;
-    }
-  };
-
-  const renderPlaceCard = ({ item, index }: { item: Place; index: number }) => (
-    <MotiView
-      from={{ opacity: 0, translateY: 50 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 500, delay: index * 100 }}
-      style={[styles.card, { backgroundColor: theme.colors.card }]}
-    >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => navigation.navigate('Details', { place: item })}
+  const renderHeader = () => (
+    <View>
+      {/* Hero Section */}
+      <LinearGradient
+        colors={gradients.primary.colors}
+        start={gradients.primary.start}
+        end={gradients.primary.end}
+        style={[styles.heroSection, { borderRadius: borderRadius['3xl'], padding: spacing[8] }]}
       >
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: item.image }} style={styles.image} />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.7)']}
-            style={styles.imageOverlay}
-          >
-            <View style={styles.badgeRow}>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                <Text style={styles.statusText}>{item.status}</Text>
-              </View>
-              <View style={[styles.categoryBadgeTop, { backgroundColor: 'rgba(255, 255, 255, 0.9)' }]}>
-                <Text style={[styles.categoryBadgeTopText, { color: theme.colors.text }]}>
-                  {item.category}
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => toggleFavorite(item.id)}
-          >
-            <Feather
-              name="heart"
-              size={22}
-              color={favorites.includes(item.id) ? '#EF4444' : '#fff'}
-              fill={favorites.includes(item.id) ? '#EF4444' : 'transparent'}
-            />
-          </TouchableOpacity>
-          <View style={styles.cardTitle}>
-            <Text style={styles.cardTitleText} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <View style={styles.cardLocationRow}>
-              <Feather name="map-pin" size={12} color="#fff" />
-              <Text style={styles.cardLocation}>
-                {item.province}
-              </Text>
-            </View>
-          </View>
-        </View>
+        {/* Decorative Blobs */}
+        <View style={[styles.blob, styles.blob1]} />
+        <View style={[styles.blob, styles.blob2]} />
 
-        <View style={styles.cardContent}>
-          <Text style={[styles.description, { color: theme.colors.textSecondary }]} numberOfLines={2}>
-            {item.description}
+        <Text
+          style={[
+            styles.heroTitle,
+            {
+              fontSize: typography.fontSize['3xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: '#FFFFFF',
+              marginBottom: spacing[2],
+            },
+          ]}
+        >
+          Discover Sri Lanka
+        </Text>
+        <Text
+          style={[
+            styles.heroSubtitle,
+            {
+              fontSize: typography.fontSize.base,
+              color: 'rgba(255, 255, 255, 0.9)',
+            },
+          ]}
+        >
+          Explore breathtaking destinations with convenient transport options
+        </Text>
+      </LinearGradient>
+
+      {/* Search Input */}
+      <View style={[styles.searchContainer, { marginTop: spacing[3] }]}>
+        <Feather
+          name="search"
+          size={20}
+          color={colors.mutedForeground}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={[
+            styles.searchInput,
+            {
+              borderColor: colors.input,
+              backgroundColor: colors.background,
+              color: colors.foreground,
+              fontSize: typography.fontSize.base,
+              borderRadius: borderRadius.md,
+              height: 48,
+              paddingLeft: 40,
+              paddingRight: spacing[3],
+            },
+          ]}
+          placeholder="Search destinations..."
+          placeholderTextColor={colors.mutedForeground}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Filter Dropdown */}
+      <View style={[styles.filterContainer, { marginTop: spacing[3] }]}>
+        <Feather name="filter" size={16} color={colors.foreground} style={{ marginRight: 8 }} />
+        <Pressable
+          style={[
+            styles.filterButton,
+            {
+              borderColor: colors.input,
+              backgroundColor: colors.background,
+              borderRadius: borderRadius.md,
+              height: 48,
+              flex: 1,
+              paddingHorizontal: spacing[3],
+            },
+          ]}
+        >
+          <Text style={[styles.filterText, { fontSize: typography.fontSize.base, color: colors.foreground }]}>
+            {categoryFilter === 'all' ? 'All Categories' : categoryFilter}
           </Text>
-          <View style={styles.footer}>
-            <View style={styles.ratingContainer}>
-              <Feather name="star" size={16} color="#F59E0B" fill="#F59E0B" />
-              <Text style={[styles.rating, { color: theme.colors.text }]}>{item.rating}</Text>
-            </View>
-            <View style={styles.transportIcons}>
-              {item.transportOptions?.slice(0, 3).map((transport, idx) => (
-                <View
-                  key={idx}
-                  style={[styles.transportIcon, { backgroundColor: theme.colors.primary + '20' }]}
-                >
-                  <Feather name="truck" size={14} color={theme.colors.primary} />
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </MotiView>
-  );
+          <Feather name="chevron-down" size={20} color={colors.foreground} />
+        </Pressable>
+      </View>
 
-  return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Fixed Header */}
-      <Header userName={user?.name} />
-
-      {/* Scrollable Content */}
-      <FlatList
-        data={places}
-        renderItem={renderPlaceCard}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary}
-          />
-        }
-        ListHeaderComponent={
-          <View>
-            <LinearGradient
-              colors={['#10B981', '#0EA5E9']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroSection}
+      {/* Category Pills */}
+      <View style={[styles.categoryPills, { marginTop: spacing[3], marginBottom: spacing[6] }]}>
+        {categories.map((cat) => (
+          <Pressable
+            key={cat}
+            onPress={() => setCategoryFilter(cat)}
+            style={[
+              styles.categoryPill,
+              {
+                backgroundColor: categoryFilter === cat ? colors.primary : colors.muted,
+                borderRadius: borderRadius.full,
+                paddingHorizontal: spacing[4],
+                paddingVertical: spacing[2],
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.categoryPillText,
+                {
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: categoryFilter === cat ? '#FFFFFF' : colors.foreground,
+                },
+              ]}
             >
-              <Text style={styles.headerTitle}>Discover Sri Lanka</Text>
-              <Text style={styles.headerSubtitle}>
-                Explore breathtaking destinations with convenient transport options
-              </Text>
-            </LinearGradient>
-            <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
-              <Feather name="search" size={20} color={theme.colors.textSecondary} />
-              <TextInput
-                style={[styles.searchInput, { color: theme.colors.text }]}
-                placeholder="Search destinations..."
-                placeholderTextColor={theme.colors.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery !== '' && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Feather name="x" size={20} color={theme.colors.textSecondary} />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <TouchableOpacity style={[styles.filterRow, { backgroundColor: theme.colors.card }]}>
-              <Feather name="filter" size={18} color={theme.colors.text} />
-              <Text style={[styles.filterText, { color: theme.colors.text }]}>
-                All Categories
-              </Text>
-              <Feather name="chevron-down" size={18} color={theme.colors.text} />
-            </TouchableOpacity>
-
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                All Destinations
-              </Text>
-              <Text style={[styles.placeCount, { color: theme.colors.textSecondary }]}>
-                {places.length} places
-              </Text>
-            </View>
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Feather name="map" size={64} color={theme.colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              No destinations found
+              {cat === 'all' ? 'All' : cat}
             </Text>
-          </View>
-        }
-        ListFooterComponent={<View style={{ height: 20 }} />}
-      />
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Section Header */}
+      <View style={styles.sectionHeader}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+            },
+          ]}
+        >
+          {getCategoryLabel()}
+        </Text>
+        <Text
+          style={[
+            styles.sectionCount,
+            {
+              fontSize: typography.fontSize.sm,
+              color: colors.mutedForeground,
+            },
+          ]}
+        >
+          {filteredDestinations.length} places
+        </Text>
+      </View>
     </View>
   );
-}
+
+  const renderEmptyState = () => (
+    <View style={[styles.emptyState, { paddingVertical: spacing[12] }]}>
+      <Text
+        style={[
+          styles.emptyText,
+          {
+            fontSize: typography.fontSize.base,
+            color: colors.mutedForeground,
+            textAlign: 'center',
+          },
+        ]}
+      >
+        No destinations found
+      </Text>
+    </View>
+  );
+
+  const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
+      <Header />
+      <FlatList
+        data={filteredDestinations}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <DestinationCard destination={item} />}
+        numColumns={numColumns}
+        key={numColumns}
+        contentContainerStyle={[
+          styles.listContent,
+          {
+            paddingHorizontal: spacing[4],
+            paddingTop: spacing[6],
+            paddingBottom: spacing[20],
+          },
+        ]}
+        columnWrapperStyle={numColumns > 1 ? { gap: spacing[6] } : undefined}
+        ItemSeparatorComponent={() => <View style={{ height: spacing[6] }} />}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={6}
+        initialNumToRender={6}
+      />
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContainer: {
-    paddingHorizontal: 20,
+  listContent: {
+    flexGrow: 1,
   },
   heroSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 20,
-    borderRadius: 24,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 6,
+  blob: {
+    position: 'absolute',
+    width: 192,
+    height: 192,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 96,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.95,
-    lineHeight: 20,
+  blob1: {
+    bottom: -40,
+    right: -40,
+  },
+  blob2: {
+    top: -40,
+    left: -40,
+  },
+  heroTitle: {
+    position: 'relative',
+    zIndex: 1,
+  },
+  heroSubtitle: {
+    position: 'relative',
+    zIndex: 1,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 48,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    position: 'relative',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 12,
+    top: 14,
+    zIndex: 1,
   },
   searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
+    borderWidth: 1,
   },
-  filterRow: {
+  filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  filterText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
   },
+  filterText: {},
+  categoryPills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryPill: {},
+  categoryPillText: {},
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  placeCount: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  greeting: {
-    fontSize: 14,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  categoriesContainer: {
-    gap: 10,
-  },
-  categoryChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  categoryChipText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  card: {
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
-    overflow: 'hidden',
-  },
-  imageContainer: {
-    position: 'relative',
-    height: 200,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 12,
-    paddingTop: 12,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  categoryBadgeTop: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  categoryBadgeTopText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  cardTitle: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
-  },
-  cardTitleText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  cardLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  cardLocation: {
-    fontSize: 13,
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  cardContent: {
-    padding: 16,
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  sectionTitle: {},
+  sectionCount: {},
+  emptyState: {
     alignItems: 'center',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rating: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  transportIcons: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  transportIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    marginTop: 15,
-  },
+  emptyText: {},
 });
+
+export default HomeScreen;
