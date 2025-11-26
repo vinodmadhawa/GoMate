@@ -8,6 +8,7 @@ import {
   Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
@@ -83,31 +84,31 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
   const statusColors = getBadgeColor(destination.status);
 
   // Get transport icons (max 3) with proper icons for each transport type
-  const getTransportIcon = (type: string): keyof typeof Feather.glyphMap => {
+  const getTransportIcon = (type: string): { library: 'ionicons' | 'feather'; icon: string } => {
     const transportType = type.toLowerCase().trim();
     switch (transportType) {
       case 'train':
-        return 'navigation'; // Train icon
+        return { library: 'ionicons', icon: 'train' };
       case 'bus':
-        return 'truck'; // Bus icon
+        return { library: 'ionicons', icon: 'bus' };
       case 'taxi':
       case 'car':
-        return 'navigation-2'; // Taxi/car icon
+        return { library: 'ionicons', icon: 'car' };
       case 'tuk-tuk':
-        return 'navigation-2'; // Tuk-tuk icon
+        return { library: 'ionicons', icon: 'car' };
       case 'boat':
       case 'ferry':
-        return 'anchor'; // Boat/ferry icon
+        return { library: 'ionicons', icon: 'boat' };
       case 'plane':
       case 'flight':
-        return 'send'; // Plane icon
+        return { library: 'ionicons', icon: 'airplane' };
       default:
-        return 'map-pin'; // Default icon
+        return { library: 'ionicons', icon: 'car' };
     }
   };
 
   const transportIcons = destination.transport.slice(0, 3).map((t) => ({
-    icon: getTransportIcon(t.type),
+    ...getTransportIcon(t.type),
     type: t.type,
   }));
 
@@ -299,7 +300,11 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
                       },
                     ]}
                   >
-                    <Feather name={transport.icon} size={16} color="#14B8A6" />
+                    {transport.library === 'ionicons' ? (
+                      <Ionicons name={transport.icon as any} size={16} color="#14B8A6" />
+                    ) : (
+                      <Feather name={transport.icon as any} size={16} color="#14B8A6" />
+                    )}
                   </View>
                 ))}
               </View>

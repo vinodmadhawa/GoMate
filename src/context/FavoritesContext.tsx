@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useNotifications } from './NotificationContext';
+import { destinations } from '../data/destinations';
 
 interface FavoritesContextType {
   favorites: string[];
@@ -19,6 +21,7 @@ interface FavoritesProviderProps {
 export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }) => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     loadFavorites();
@@ -39,12 +42,25 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
 
   const toggleFavorite = async (id: string) => {
     try {
+      const isAdding = !favorites.includes(id);
+      const destination = destinations.find(d => d.id === id);
+      
       const newFavorites = favorites.includes(id)
         ? favorites.filter((favId) => favId !== id)
         : [...favorites, id];
 
       setFavorites(newFavorites);
       await AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(newFavorites));
+
+      // Add notification
+      if (destination) {
+        addNotification({
+          type: isAdding ? 'favorite_added' : 'favorite_removed',
+          title: isAdding ? 'Added to Favorites' : 'Removed from Favorites',
+          message: `${destination.name} has been ${isAdding ? 'added to' : 'removed from'} your favorites`,
+          data: { destinationId: id },
+        });
+      }
 
       Toast.show({
         type: 'success',

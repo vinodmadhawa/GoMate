@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useTheme } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { User } from '../types';
 
 const USER_STORAGE_KEY = 'gomate_user';
@@ -27,6 +28,7 @@ const USERS_STORAGE_KEY = 'gomate_users';
 const AccountSettingsScreen = () => {
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
   const { user, logout } = useAuth();
+  const { addNotification } = useNotifications();
   const navigation = useNavigation();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -143,6 +145,13 @@ const AccountSettingsScreen = () => {
 
       // Update current user
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      // Add notification
+      addNotification({
+        type: 'profile_updated',
+        title: 'Profile Updated',
+        message: 'Your profile information has been successfully updated',
+      });
 
       // Update context (force re-render by logging out and back in)
       Toast.show({

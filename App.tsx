@@ -5,6 +5,7 @@ import { Platform, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { ThemeProvider } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import { FavoritesProvider } from './src/context/FavoritesContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
@@ -16,11 +17,13 @@ export default function App() {
     <RootComponent style={{ flex: 1 }}>
       <ThemeProvider>
         <AuthProvider>
-          <FavoritesProvider>
-            <AppNavigator />
-            <StatusBar style="auto" />
-            <Toast />
-          </FavoritesProvider>
+          <NotificationProvider>
+            <FavoritesProvider>
+              <AppNavigator />
+              <StatusBar style="auto" />
+              <Toast />
+            </FavoritesProvider>
+          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </RootComponent>
