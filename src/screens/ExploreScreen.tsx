@@ -155,47 +155,6 @@ const ExploreScreen = () => {
           </Pressable>
         ))}
 
-        {/* Interactive Map Section */}
-        <Text
-          style={[
-            styles.sectionTitle,
-            {
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.foreground,
-              marginTop: spacing[6],
-              marginBottom: spacing[4],
-            },
-          ]}
-        >
-          Interactive Map
-        </Text>
-        <View
-          style={[
-            styles.mapPlaceholder,
-            {
-              backgroundColor: colors.muted,
-              borderColor: colors.border,
-              borderRadius: borderRadius.lg,
-              height: 300,
-              marginBottom: spacing[6],
-            },
-          ]}
-        >
-          <Feather name="map" size={48} color={colors.mutedForeground} style={{ marginBottom: spacing[2] }} />
-          <Text
-            style={[
-              styles.mapPlaceholderText,
-              {
-                fontSize: typography.fontSize.lg,
-                color: colors.mutedForeground,
-              },
-            ]}
-          >
-            Coming Soon...
-          </Text>
-        </View>
-
         {/* Quick Stats Section */}
         <Text
           style={[
@@ -324,12 +283,6 @@ const styles = StyleSheet.create({
   categoryName: {},
   categoryCount: {},
   categoryCountText: {},
-  mapPlaceholder: {
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mapPlaceholderText: {},
   statsContainer: {
     flexDirection: 'row',
   },

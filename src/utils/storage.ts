@@ -10,7 +10,10 @@ export const storageService = {
   saveUser: async (user: User): Promise<void> => {
     try {
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
-      await AsyncStorage.setItem(TOKEN_KEY, user.token);
+      const token = (user as any).token;
+      if (typeof token === 'string') {
+        await AsyncStorage.setItem(TOKEN_KEY, token);
+      }
     } catch (error) {
       console.error('Error saving user:', error);
       throw error;
