@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   Pressable,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -27,11 +26,11 @@ const DestinationDetailScreen = () => {
 
   if (!destination) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Text style={{ color: colors.foreground, textAlign: 'center', marginTop: 50 }}>
           Destination not found
         </Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -68,9 +67,12 @@ const DestinationDetailScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         {/* Hero Image with Overlay */}
         <View style={styles.heroContainer}>
           <Image 
@@ -291,7 +293,7 @@ const DestinationDetailScreen = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

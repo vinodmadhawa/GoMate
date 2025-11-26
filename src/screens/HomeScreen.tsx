@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,16 +22,35 @@ import DestinationCard from '../components/DestinationCard';
 
 const HomeScreen = () => {
   const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category>('all');
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const handleSearch = () => {
-    setSearchQuery(searchInput);
-  };
-
   const categories: Category[] = ['all', 'Cultural', 'Nature', 'Adventure', 'Beach', 'Historical'];
+
+  // Debounce search input
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchQuery(searchText);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchText]);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchText(text);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchText('');
+    setSearchQuery('');
+  }, []);
+
+  const handleCategorySelect = useCallback((category: Category) => {
+    setCategoryFilter(category);
+    setDropdownVisible(false);
+  }, []);
 
   const filteredDestinations = useMemo(() => {
     return destinations.filter((dest) => {
@@ -60,12 +79,7 @@ const HomeScreen = () => {
     return categoryFilter === 'all' ? 'All Destinations' : `${categoryFilter} Destinations`;
   };
 
-  const handleCategorySelect = (category: Category) => {
-    setCategoryFilter(category);
-    setDropdownVisible(false);
-  };
-
-  const renderHeader = () => (
+  const renderHeader = useMemo(() => (
     <View>
       {/* Hero Section */}
       <LinearGradient
@@ -119,17 +133,27 @@ const HomeScreen = () => {
               borderRadius: borderRadius.lg,
               height: 52,
               paddingLeft: 40,
-              paddingRight: spacing[3],
+              paddingRight: searchText ? 80 : spacing[3],
               borderWidth: 1,
             },
           ]}
           placeholder="Search by name, location, or category..."
           placeholderTextColor={colors.mutedForeground}
-          value={searchInput}
-          onChangeText={setSearchInput}
-          onSubmitEditing={handleSearch}
+          value={searchText}
+          onChangeText={handleSearchChange}
           returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
+        {searchText.length > 0 && (
+          <Pressable
+            onPress={handleClearSearch}
+            style={[styles.clearButton, { right: spacing[3] }]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="x-circle" size={20} color={colors.mutedForeground} />
+          </Pressable>
+        )}
       </View>
 
       {/* Filter Dropdown */}
@@ -214,9 +238,9 @@ const HomeScreen = () => {
         </Text>
       </View>
     </View>
-  );
+  ), [gradients, borderRadius, spacing, typography, colors, theme, categoryFilter, setCategoryFilter, categories, filteredDestinations.length, searchText, handleSearchChange, handleClearSearch]);
 
-  const renderEmptyState = () => (
+  const renderEmptyState = useMemo(() => (
     <View style={[styles.emptyState, { paddingVertical: spacing[12] }]}>
       <Text
         style={[
@@ -231,22 +255,27 @@ const HomeScreen = () => {
         No destinations found
       </Text>
     </View>
-  );
+  ), [spacing, typography, colors]);
 
   const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
+
+  const renderItem = useCallback(({ item }: { item: typeof destinations[0] }) => (
+    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
+      <DestinationCard destination={item} />
+    </View>
+  ), [numColumns, spacing]);
+
+  const keyExtractor = useCallback((item: typeof destinations[0]) => item.id, []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
       <Header />
+
       <FlatList
         data={filteredDestinations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
-            <DestinationCard destination={item} />
-          </View>
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         numColumns={numColumns}
         key={numColumns}
         contentContainerStyle={[
@@ -365,6 +394,11 @@ const styles = StyleSheet.create({
   searchIcon: {
     position: 'absolute',
     left: 12,
+    top: 14,
+    zIndex: 1,
+  },
+  clearButton: {
+    position: 'absolute',
     top: 14,
     zIndex: 1,
   },
