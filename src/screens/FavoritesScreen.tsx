@@ -15,7 +15,30 @@ import { useTheme } from '../theme';
 import { useFavorites } from '../context/FavoritesContext';
 import { destinations } from '../data/destinations';
 import Header from '../components/Header';
-import DestinationCard from '../components/DestinationCard';
+
+const DestinationCard: React.FC<{ destination: any }> = ({ destination }) => {
+  return (
+    <Pressable
+      style={{
+        flex: 1,
+        backgroundColor: 'transparent',
+        borderRadius: 12,
+        overflow: 'hidden',
+        padding: 12,
+        justifyContent: 'center',
+      }}
+      onPress={() => {}}
+    >
+      <Text style={{ fontSize: 16, fontWeight: '600', color: '#111' }}>
+        {destination?.name ?? 'Unknown'}
+      </Text>
+      {destination?.location ? (
+        <Text style={{ color: '#666', marginTop: 4 }}>{destination.location}</Text>
+      ) : null}
+    </Pressable>
+  );
+};
+
 import { LinearGradient } from 'expo-linear-gradient';
 
 const FavoritesScreen = () => {
@@ -28,53 +51,63 @@ const FavoritesScreen = () => {
   const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
 
   const renderHeader = () => (
-    <View style={[styles.headerSection, { marginBottom: spacing[6] }]}>
-      <LinearGradient
-        colors={gradients.primary.colors}
-        start={gradients.primary.start}
-        end={gradients.primary.end}
-        style={[styles.gradientHeader, { borderRadius: borderRadius['3xl'], padding: spacing[8] }]}
-      >
-        <Feather name="heart" size={48} color="#FFFFFF" style={{ marginBottom: spacing[4] }} />
+    <View style={[styles.headerSection, { paddingHorizontal: spacing[4], marginBottom: spacing[6] }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing[2] }}>
+        <Feather name="heart" size={32} color={colors.primary} style={{ marginRight: spacing[3] }} />
         <Text
           style={[
             styles.title,
             {
               fontSize: typography.fontSize['3xl'],
               fontWeight: typography.fontWeight.bold,
-              color: '#FFFFFF',
-              marginBottom: spacing[2],
+              color: colors.foreground,
             },
           ]}
         >
           My Favorites
         </Text>
-        <Text
-          style={[
-            styles.subtitle,
-            {
-              fontSize: typography.fontSize.base,
-              color: 'rgba(255, 255, 255, 0.9)',
-            },
-          ]}
-        >
-          Your saved destinations
-        </Text>
-      </LinearGradient>
+      </View>
+      <Text
+        style={[
+          styles.subtitle,
+          {
+            fontSize: typography.fontSize.base,
+            color: colors.mutedForeground,
+          },
+        ]}
+      >
+        Your saved destinations for quick access
+      </Text>
     </View>
   );
 
   const renderEmptyState = () => (
-    <View style={[styles.emptyState, { paddingVertical: spacing[12] }]}>
-      <Feather name="heart" size={64} color={colors.mutedForeground} style={{ marginBottom: spacing[4] }} />
+    <View style={[styles.emptyState, { paddingVertical: spacing[20], alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.emptyIconContainer,
+          {
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+            backgroundColor: colors.muted,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: spacing[6],
+          },
+        ]}
+      >
+        <Feather name="heart" size={64} color={colors.mutedForeground} />
+      </View>
       <Text
         style={[
           styles.emptyTitle,
           {
-            fontSize: typography.fontSize.xl,
-            fontWeight: typography.fontWeight.semibold,
+            fontSize: typography.fontSize['2xl'],
+            fontWeight: typography.fontWeight.bold,
             color: colors.foreground,
-            marginBottom: spacing[2],
+            marginBottom: spacing[3],
+            textAlign: 'center',
           },
         ]}
       >
@@ -86,37 +119,15 @@ const FavoritesScreen = () => {
           {
             fontSize: typography.fontSize.base,
             color: colors.mutedForeground,
-            marginBottom: spacing[4],
+            textAlign: 'center',
+            marginBottom: spacing[8],
+            maxWidth: 300,
+            lineHeight: 24,
           },
         ]}
       >
-        Start exploring destinations
+        Start exploring destinations and save your favorites by tapping the heart icon
       </Text>
-      <Pressable
-        style={[
-          styles.exploreButton,
-          {
-            backgroundColor: colors.primary,
-            borderRadius: borderRadius.lg,
-            paddingHorizontal: spacing[6],
-            paddingVertical: spacing[3],
-          },
-        ]}
-        onPress={() => navigation.navigate('Home' as never)}
-      >
-        <Text
-          style={[
-            styles.exploreButtonText,
-            {
-              fontSize: typography.fontSize.base,
-              fontWeight: typography.fontWeight.semibold,
-              color: '#FFFFFF',
-            },
-          ]}
-        >
-          Explore
-        </Text>
-      </Pressable>
     </View>
   );
 
@@ -166,6 +177,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },

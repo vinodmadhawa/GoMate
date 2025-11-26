@@ -6,6 +6,7 @@ import {
   Pressable,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { colors, typography, spacing, borderRadius, theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const navigation = useNavigation();
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
@@ -102,7 +104,8 @@ const Header: React.FC<HeaderProps> = ({
         <View style={styles.rightSection}>
           {/* User Badge (hidden on small screens in production) */}
           {showUserBadge && user && (
-            <View
+            <Pressable
+              onPress={() => navigation.navigate('Profile' as never)}
               style={[
                 styles.userBadge,
                 {
@@ -113,7 +116,19 @@ const Header: React.FC<HeaderProps> = ({
                 },
               ]}
             >
-              <Feather name="user" size={16} color={colors.primary} />
+              {user.profileImage ? (
+                <Image
+                  source={{ uri: user.profileImage }}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    marginRight: spacing[2],
+                  }}
+                />
+              ) : (
+                <Feather name="user" size={16} color={colors.primary} />
+              )}
               <Text
                 style={[
                   styles.userName,
@@ -121,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
                     color: colors.foreground,
-                    marginLeft: spacing[2],
+                    marginLeft: user.profileImage ? 0 : spacing[2],
                   },
                 ]}
                 numberOfLines={1}
@@ -129,12 +144,22 @@ const Header: React.FC<HeaderProps> = ({
               >
                 {user.name}
               </Text>
-            </View>
+            </Pressable>
           )}
 
           {/* Action Buttons */}
           {showActions && (
             <>
+              {/* Notification Button */}
+              {user && (
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={() => navigation.navigate('Profile' as never)}
+                >
+                  <Feather name="bell" size={20} color={colors.foreground} />
+                </Pressable>
+              )}
+
               {/* Theme Toggle Button */}
               <Pressable
                 style={styles.actionButton}

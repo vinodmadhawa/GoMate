@@ -111,11 +111,16 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
       >
         {/* Image Section */}
         <View style={styles.imageContainer}>
-          <Animated.View style={{ transform: [{ scale: imageScaleAnim }] }}>
+          <Animated.View style={{ transform: [{ scale: imageScaleAnim }], flex: 1 }}>
             <Image
-              source={{ uri: destination.image }}
+              source={
+                typeof destination.image === 'string'
+                  ? { uri: destination.image }
+                  : destination.image
+              }
               style={styles.image}
               resizeMode="cover"
+              onError={(error) => console.log('Image load error:', error.nativeEvent.error)}
             />
           </Animated.View>
           
@@ -291,6 +296,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     overflow: 'hidden',
+    flex: 1,
   },
   imageContainer: {
     height: 192,

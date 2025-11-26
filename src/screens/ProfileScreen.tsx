@@ -10,6 +10,7 @@ import {
   StatusBar,
   Switch,
   Platform,
+  Image,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -51,11 +52,20 @@ const ProfileScreen = () => {
   };
 
   const menuItems = [
-    { icon: 'user', label: 'Account Settings', onPress: () => {} },
+    { icon: 'user', label: 'Account Settings', onPress: () => navigation.navigate('AccountSettings' as never) },
     { icon: 'heart', label: `Favorites (${favorites.length})`, onPress: () => navigation.navigate('Favorites' as never) },
-    { icon: 'moon', label: 'Dark Mode', onPress: () => {}, isToggle: true },
-    { icon: 'info', label: 'About', onPress: () => {} },
-    { icon: 'log-out', label: 'Logout', onPress: handleLogout, isDestructive: true },
+  ];
+
+  const preferenceItems = [
+    { icon: 'moon', label: 'Dark Mode', subtitle: theme === 'dark' ? 'Enabled' : 'Disabled', onPress: () => {}, isToggle: true },
+    { icon: 'bell', label: 'Notifications', subtitle: 'Manage your notifications', onPress: () => {} },
+    { icon: 'globe', label: 'Language', subtitle: 'English', onPress: () => {} },
+  ];
+
+  const supportItems = [
+    { icon: 'help-circle', label: 'Help & Support', subtitle: 'Get help with the app', onPress: () => {} },
+    { icon: 'info', label: 'About', subtitle: 'Version 1.0.0', onPress: () => {} },
+    { icon: 'file-text', label: 'Terms & Privacy', subtitle: 'Read our policies', onPress: () => {} },
   ];
 
   const getInitials = (name: string) => {
@@ -79,71 +89,103 @@ const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header Section */}
-        <LinearGradient
-          colors={gradients.primary.colors}
-          start={gradients.primary.start}
-          end={gradients.primary.end}
+        <View
           style={[
             styles.profileHeader,
             {
-              borderRadius: borderRadius['3xl'],
-              padding: spacing[8],
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: borderRadius['2xl'],
+              padding: spacing[6],
               marginBottom: spacing[6],
+              flexDirection: 'row',
+              alignItems: 'center',
             },
           ]}
         >
-          <View
-            style={[
-              styles.avatar,
-              {
+          {user?.profileImage ? (
+            <Image
+              source={{ uri: user.profileImage }}
+              style={{
                 width: 80,
                 height: 80,
                 borderRadius: 40,
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                marginBottom: spacing[4],
-              },
-            ]}
-          >
-            <Text
+                marginRight: spacing[4],
+              }}
+            />
+          ) : (
+            <View
               style={[
-                styles.avatarText,
+                styles.avatar,
                 {
-                  fontSize: typography.fontSize['2xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: '#FFFFFF',
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: '#14B8A6',
+                  marginRight: spacing[4],
                 },
               ]}
             >
-              {user ? getInitials(user.name) : 'U'}
+              <Text
+                style={[
+                  styles.avatarText,
+                  {
+                    fontSize: typography.fontSize['3xl'],
+                    fontWeight: typography.fontWeight.bold,
+                    color: '#FFFFFF',
+                  },
+                ]}
+              >
+                {user ? getInitials(user.name) : 'U'}
+              </Text>
+            </View>
+          )}
+          <View style={styles.userInfo}>
+            <Text
+              style={[
+                styles.userName,
+                {
+                  fontSize: typography.fontSize['2xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.foreground,
+                  marginBottom: spacing[1],
+                },
+              ]}
+            >
+              {user?.name || 'Guest'}
+            </Text>
+            <Text
+              style={[
+                styles.userEmail,
+                {
+                  fontSize: typography.fontSize.base,
+                  color: colors.mutedForeground,
+                },
+              ]}
+            >
+              {user?.email || 'guest@gomate.com'}
             </Text>
           </View>
-          <Text
-            style={[
-              styles.userName,
-              {
-                fontSize: typography.fontSize['2xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: '#FFFFFF',
-                marginBottom: spacing[1],
-              },
-            ]}
-          >
-            {user?.name || 'Guest'}
-          </Text>
-          <Text
-            style={[
-              styles.userEmail,
-              {
-                fontSize: typography.fontSize.sm,
-                color: 'rgba(255, 255, 255, 0.9)',
-              },
-            ]}
-          >
-            {user?.email || 'guest@gomate.com'}
-          </Text>
-        </LinearGradient>
+        </View>
 
-        {/* Menu Items */}
+        {/* Account Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.mutedForeground,
+              marginBottom: spacing[3],
+              marginTop: spacing[2],
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            },
+          ]}
+        >
+          Account
+        </Text>
         {menuItems.map((item, index) => (
           <Pressable
             key={index}
@@ -163,21 +205,90 @@ const ProfileScreen = () => {
               <Feather
                 name={item.icon as any}
                 size={20}
-                color={item.isDestructive ? colors.destructive : colors.foreground}
+                color={colors.foreground}
               />
               <Text
                 style={[
                   styles.menuItemText,
                   {
                     fontSize: typography.fontSize.base,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: item.isDestructive ? colors.destructive : colors.foreground,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.foreground,
                     marginLeft: spacing[3],
                   },
                 ]}
               >
                 {item.label}
               </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+          </Pressable>
+        ))}
+
+        {/* Preferences Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.mutedForeground,
+              marginBottom: spacing[3],
+              marginTop: spacing[6],
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            },
+          ]}
+        >
+          Preferences
+        </Text>
+        {preferenceItems.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={item.onPress}
+            style={[
+              styles.menuItem,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[4],
+                marginBottom: spacing[2],
+              },
+            ]}
+          >
+            <View style={styles.menuItemLeft}>
+              <Feather
+                name={item.icon as any}
+                size={20}
+                color={colors.foreground}
+              />
+              <View style={{ marginLeft: spacing[3] }}>
+                <Text
+                  style={[
+                    styles.menuItemText,
+                    {
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.foreground,
+                    },
+                  ]}
+                >
+                  {item.label}
+                </Text>
+                <Text
+                  style={[
+                    styles.menuItemSubtitle,
+                    {
+                      fontSize: typography.fontSize.sm,
+                      color: colors.mutedForeground,
+                      marginTop: spacing[1],
+                    },
+                  ]}
+                >
+                  {item.subtitle}
+                </Text>
+              </View>
             </View>
             {item.isToggle ? (
               <Switch
@@ -192,6 +303,110 @@ const ProfileScreen = () => {
           </Pressable>
         ))}
 
+        {/* Support Section */}
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.mutedForeground,
+              marginBottom: spacing[3],
+              marginTop: spacing[6],
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            },
+          ]}
+        >
+          Support
+        </Text>
+        {supportItems.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={item.onPress}
+            style={[
+              styles.menuItem,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing[4],
+                marginBottom: spacing[2],
+              },
+            ]}
+          >
+            <View style={styles.menuItemLeft}>
+              <Feather
+                name={item.icon as any}
+                size={20}
+                color={colors.foreground}
+              />
+              <View style={{ marginLeft: spacing[3] }}>
+                <Text
+                  style={[
+                    styles.menuItemText,
+                    {
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.foreground,
+                    },
+                  ]}
+                >
+                  {item.label}
+                </Text>
+                <Text
+                  style={[
+                    styles.menuItemSubtitle,
+                    {
+                      fontSize: typography.fontSize.sm,
+                      color: colors.mutedForeground,
+                      marginTop: spacing[1],
+                    },
+                  ]}
+                >
+                  {item.subtitle}
+                </Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+          </Pressable>
+        ))}
+
+        {/* Logout Button */}
+        <Pressable
+          onPress={handleLogout}
+          style={[
+            styles.logoutButton,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.destructive,
+              borderWidth: 1,
+              borderRadius: borderRadius.lg,
+              padding: spacing[4],
+              marginTop: spacing[6],
+              marginBottom: spacing[4],
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          ]}
+        >
+          <Feather name="log-out" size={20} color={colors.destructive} />
+          <Text
+            style={[
+              styles.logoutText,
+              {
+                fontSize: typography.fontSize.base,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.destructive,
+                marginLeft: spacing[3],
+              },
+            ]}
+          >
+            Logout
+          </Text>
+        </Pressable>
+
         {/* App Version */}
         <Text
           style={[
@@ -200,7 +415,7 @@ const ProfileScreen = () => {
               fontSize: typography.fontSize.xs,
               color: colors.mutedForeground,
               textAlign: 'center',
-              marginTop: spacing[8],
+              marginTop: spacing[4],
             },
           ]}
         >
@@ -216,20 +431,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {},
-  profileHeader: {
-    alignItems: 'center',
-  },
+  profileHeader: {},
   avatar: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {},
-  userName: {
-    textAlign: 'center',
+  userInfo: {
+    flex: 1,
   },
-  userEmail: {
-    textAlign: 'center',
-  },
+  userName: {},
+  userEmail: {},
+  sectionTitle: {},
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -241,6 +454,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuItemText: {},
+  menuItemSubtitle: {},
+  logoutButton: {},
+  logoutText: {},
   appVersion: {},
 });
 

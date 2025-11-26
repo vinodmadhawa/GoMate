@@ -9,6 +9,8 @@ import {
   Pressable,
   StatusBar,
   Dimensions,
+  Modal,
+  TouchableOpacity,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,16 +23,32 @@ import DestinationCard from '../components/DestinationCard';
 const HomeScreen = () => {
   const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category>('all');
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
 
   const categories: Category[] = ['all', 'Cultural', 'Nature', 'Adventure', 'Beach', 'Historical'];
 
   const filteredDestinations = useMemo(() => {
     return destinations.filter((dest) => {
+      // Enhanced search: search by name, location, description, and category
+      const searchLower = searchQuery.toLowerCase().trim();
+      
+      if (searchLower === '') {
+        // No search query, only filter by category
+        const matchesCategory = categoryFilter === 'all' || dest.category === categoryFilter;
+        return matchesCategory;
+      }
+
       const matchesSearch =
-        dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.description.toLowerCase().includes(searchQuery.toLowerCase());
+        dest.name.toLowerCase().includes(searchLower) ||
+        dest.location.toLowerCase().includes(searchLower) ||
+        dest.description.toLowerCase().includes(searchLower) ||
+        dest.category.toLowerCase().includes(searchLower);
 
       const matchesCategory = categoryFilter === 'all' || dest.category === categoryFilter;
 
@@ -42,6 +60,11 @@ const HomeScreen = () => {
     return categoryFilter === 'all' ? 'All Destinations' : `${categoryFilter} Destinations`;
   };
 
+  const handleCategorySelect = (category: Category) => {
+    setCategoryFilter(category);
+    setDropdownVisible(false);
+  };
+
   const renderHeader = () => (
     <View>
       {/* Hero Section */}
@@ -49,20 +72,16 @@ const HomeScreen = () => {
         colors={gradients.primary.colors}
         start={gradients.primary.start}
         end={gradients.primary.end}
-        style={[styles.heroSection, { borderRadius: borderRadius['3xl'], padding: spacing[8] }]}
+        style={[styles.heroSection, { borderRadius: borderRadius['2xl'], padding: spacing[6] }]}
       >
-        {/* Decorative Blobs */}
-        <View style={[styles.blob, styles.blob1]} />
-        <View style={[styles.blob, styles.blob2]} />
-
         <Text
           style={[
             styles.heroTitle,
             {
-              fontSize: typography.fontSize['3xl'],
+              fontSize: typography.fontSize['2xl'],
               fontWeight: typography.fontWeight.bold,
               color: '#FFFFFF',
-              marginBottom: spacing[2],
+              marginBottom: spacing[1],
             },
           ]}
         >
@@ -72,12 +91,12 @@ const HomeScreen = () => {
           style={[
             styles.heroSubtitle,
             {
-              fontSize: typography.fontSize.base,
-              color: 'rgba(255, 255, 255, 0.9)',
+              fontSize: typography.fontSize.sm,
+              color: 'rgba(255, 255, 255, 0.95)',
             },
           ]}
         >
-          Explore breathtaking destinations with convenient transport options
+          Explore breathtaking destinations
         </Text>
       </LinearGradient>
 
@@ -93,45 +112,48 @@ const HomeScreen = () => {
           style={[
             styles.searchInput,
             {
-              borderColor: colors.input,
-              backgroundColor: colors.background,
+              borderColor: theme === 'dark' ? '#2a3142' : colors.input,
+              backgroundColor: theme === 'dark' ? '#1a1f2e' : colors.background,
               color: colors.foreground,
               fontSize: typography.fontSize.base,
-              borderRadius: borderRadius.md,
-              height: 48,
+              borderRadius: borderRadius.lg,
+              height: 52,
               paddingLeft: 40,
               paddingRight: spacing[3],
+              borderWidth: 1,
             },
           ]}
-          placeholder="Search destinations..."
+          placeholder="Search by name, location, or category..."
           placeholderTextColor={colors.mutedForeground}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          value={searchInput}
+          onChangeText={setSearchInput}
+          onSubmitEditing={handleSearch}
+          returnKeyType="search"
         />
       </View>
 
       {/* Filter Dropdown */}
-      <View style={[styles.filterContainer, { marginTop: spacing[3] }]}>
-        <Feather name="filter" size={16} color={colors.foreground} style={{ marginRight: 8 }} />
-        <Pressable
-          style={[
-            styles.filterButton,
-            {
-              borderColor: colors.input,
-              backgroundColor: colors.background,
-              borderRadius: borderRadius.md,
-              height: 48,
-              flex: 1,
-              paddingHorizontal: spacing[3],
-            },
-          ]}
-        >
-          <Text style={[styles.filterText, { fontSize: typography.fontSize.base, color: colors.foreground }]}>
-            {categoryFilter === 'all' ? 'All Categories' : categoryFilter}
-          </Text>
-          <Feather name="chevron-down" size={20} color={colors.foreground} />
-        </Pressable>
-      </View>
+      <Pressable
+        onPress={() => setDropdownVisible(true)}
+        style={[
+          styles.filterButton,
+          {
+            backgroundColor: theme === 'dark' ? '#1a1f2e' : colors.muted,
+            borderRadius: borderRadius.lg,
+            height: 52,
+            marginTop: spacing[3],
+            paddingHorizontal: spacing[4],
+            borderWidth: 1,
+            borderColor: theme === 'dark' ? '#2a3142' : colors.input,
+          },
+        ]}
+      >
+        <Feather name="filter" size={18} color={colors.foreground} />
+        <Text style={[styles.filterText, { fontSize: typography.fontSize.base, color: colors.foreground, marginLeft: spacing[3], flex: 1 }]}>
+          {categoryFilter === 'all' ? 'All Categories' : categoryFilter}
+        </Text>
+        <Feather name="chevron-down" size={20} color={colors.mutedForeground} />
+      </Pressable>
 
       {/* Category Pills */}
       <View style={[styles.categoryPills, { marginTop: spacing[3], marginBottom: spacing[6] }]}>
@@ -220,7 +242,11 @@ const HomeScreen = () => {
       <FlatList
         data={filteredDestinations}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <DestinationCard destination={item} />}
+        renderItem={({ item }) => (
+          <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
+            <DestinationCard destination={item} />
+          </View>
+        )}
         numColumns={numColumns}
         key={numColumns}
         contentContainerStyle={[
@@ -231,7 +257,7 @@ const HomeScreen = () => {
             paddingBottom: spacing[20],
           },
         ]}
-        columnWrapperStyle={numColumns > 1 ? { gap: spacing[6] } : undefined}
+        columnWrapperStyle={numColumns > 1 ? { gap: spacing[4] } : undefined}
         ItemSeparatorComponent={() => <View style={{ height: spacing[6] }} />}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
@@ -240,6 +266,61 @@ const HomeScreen = () => {
         maxToRenderPerBatch={6}
         initialNumToRender={6}
       />
+
+      {/* Category Dropdown Modal */}
+      <Modal
+        visible={dropdownVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <View style={[styles.dropdownModal, { backgroundColor: colors.card }]}>
+            <View style={[styles.dropdownHeader, { borderBottomColor: colors.border, paddingVertical: spacing[3], paddingHorizontal: spacing[4] }]}>
+              <Text style={[styles.dropdownTitle, { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.foreground }]}>
+                Select Category
+              </Text>
+              <Pressable onPress={() => setDropdownVisible(false)}>
+                <Feather name="x" size={24} color={colors.foreground} />
+              </Pressable>
+            </View>
+            {categories.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => handleCategorySelect(cat)}
+                style={[
+                  styles.dropdownItem,
+                  {
+                    backgroundColor: categoryFilter === cat ? colors.muted : 'transparent',
+                    paddingVertical: spacing[3],
+                    paddingHorizontal: spacing[4],
+                    borderBottomColor: colors.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dropdownItemText,
+                    {
+                      fontSize: typography.fontSize.base,
+                      color: categoryFilter === cat ? colors.primary : colors.foreground,
+                      fontWeight: categoryFilter === cat ? typography.fontWeight.semibold : typography.fontWeight.normal,
+                    },
+                  ]}
+                >
+                  {cat === 'all' ? 'All Categories' : cat}
+                </Text>
+                {categoryFilter === cat && (
+                  <Feather name="check" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -290,15 +371,10 @@ const styles = StyleSheet.create({
   searchInput: {
     borderWidth: 1,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
   },
   filterText: {},
   categoryPills: {
@@ -320,6 +396,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {},
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownModal: {
+    width: '80%',
+    maxWidth: 400,
+    borderRadius: 12,
+    overflow: 'hidden',
+    maxHeight: '70%',
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+  },
+  dropdownTitle: {},
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+  },
+  dropdownItemText: {},
 });
 
 export default HomeScreen;

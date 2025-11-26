@@ -19,7 +19,7 @@ import { getDestinationById } from '../data/destinations';
 const DestinationDetailScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const { colors, typography, spacing, borderRadius, theme } = useTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const { destinationId } = route.params as { destinationId: string };
@@ -37,20 +37,21 @@ const DestinationDetailScreen = () => {
 
   const favorite = isFavorite(destination.id);
 
-  const getBadgeColor = (status: string) => {
+  const getBadgeColors = (status: string) => {
     switch (status) {
-      case 'Popular':
-        return { bg: `${colors.secondary}1A`, text: colors.secondary, border: `${colors.secondary}33` };
-      case 'Trending':
-        return { bg: `${colors.accent}1A`, text: colors.accent, border: `${colors.accent}33` };
       case 'Must Visit':
-        return { bg: `${colors.primary}1A`, text: colors.primary, border: `${colors.primary}33` };
+        return { bg: colors.primary, text: '#FFFFFF' };
+      case 'Popular':
+        return { bg: colors.secondary, text: '#FFFFFF' };
+      case 'Trending':
+        return { bg: colors.accent, text: '#FFFFFF' };
       default:
-        return { bg: colors.muted, text: colors.foreground, border: colors.border };
+        return { bg: colors.muted, text: colors.foreground };
     }
   };
 
-  const statusColors = getBadgeColor(destination.status);
+  const statusColors = getBadgeColors(destination.status);
+  const categoryBg = theme === 'dark' ? '#374151' : '#1F2937';
 
   const getTransportIcon = (type: string) => {
     switch (type) {
@@ -62,322 +63,233 @@ const DestinationDetailScreen = () => {
     }
   };
 
+  const capitalizeTransportType = (type: string) => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero Image */}
-        <View style={styles.heroImageContainer}>
-          <Image source={{ uri: destination.image }} style={styles.heroImage} resizeMode="cover" />
+        {/* Hero Image with Overlay */}
+        <View style={styles.heroContainer}>
+          <Image 
+            source={
+              typeof destination.image === 'string'
+                ? { uri: destination.image }
+                : destination.image
+            }
+            style={styles.heroImage} 
+            resizeMode="cover" 
+          />
           
-          {/* Image Overlay */}
+          {/* Dark Overlay */}
           <LinearGradient
-            colors={gradients.imageOverlay.colors}
-            start={gradients.imageOverlay.start}
-            end={gradients.imageOverlay.end}
+            colors={['rgba(0, 0, 0, 0.6)', 'rgba(0, 0, 0, 0.3)', 'transparent']}
             style={StyleSheet.absoluteFill}
           />
 
-          {/* Floating Header */}
-          <View style={styles.floatingHeader}>
+          {/* Back & Favorite Buttons */}
+          <View style={styles.headerButtons}>
             <Pressable
               onPress={() => navigation.goBack()}
-              style={[styles.headerButton, { backgroundColor: `${colors.background}CC` }]}
+              style={[styles.iconButton, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}
             >
-              <Feather name="chevron-left" size={24} color={colors.foreground} />
+              <Feather name="chevron-left" size={24} color="#FFFFFF" />
+              <Text style={[styles.backText, { marginLeft: 4, color: '#FFFFFF', fontSize: 16, fontWeight: '600' }]}>
+                Back
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => toggleFavorite(destination.id)}
-              style={[
-                styles.headerButton,
-                { backgroundColor: favorite ? colors.primary : `${colors.background}CC` },
-              ]}
+              style={[styles.iconButton, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}
             >
               <Feather
                 name="heart"
                 size={24}
-                color={favorite ? '#FFFFFF' : colors.foreground}
+                color="#FFFFFF"
                 fill={favorite ? '#FFFFFF' : 'transparent'}
               />
             </Pressable>
           </View>
-        </View>
 
-        {/* Content Container */}
-        <View
-          style={[
-            styles.contentContainer,
-            {
-              backgroundColor: colors.background,
-              borderTopLeftRadius: borderRadius['3xl'],
-              borderTopRightRadius: borderRadius['3xl'],
-              marginTop: -32,
-              padding: spacing[6],
-            },
-          ]}
-        >
-          {/* Title */}
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize: typography.fontSize['3xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: colors.foreground,
-                marginBottom: spacing[2],
-              },
-            ]}
-          >
-            {destination.name}
-          </Text>
-
-          {/* Location */}
-          <View style={[styles.locationRow, { marginBottom: spacing[4] }]}>
-            <Feather name="map-pin" size={20} color={colors.primary} />
-            <Text
-              style={[
-                styles.location,
-                {
-                  fontSize: typography.fontSize.base,
-                  color: colors.mutedForeground,
-                  marginLeft: spacing[2],
-                },
-              ]}
-            >
-              {destination.location}
-            </Text>
-          </View>
-
-          {/* Rating & Badges Row */}
-          <View style={[styles.ratingBadgesRow, { marginBottom: spacing[6] }]}>
-            <View style={styles.rating}>
-              <Feather name="star" size={20} color={colors.accent} fill={colors.accent} />
-              <Text
-                style={[
-                  styles.ratingText,
-                  {
-                    fontSize: typography.fontSize.base,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.foreground,
-                    marginLeft: spacing[2],
-                  },
-                ]}
-              >
-                {destination.rating} Rating
-              </Text>
-            </View>
-            <View style={styles.badges}>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor: statusColors.bg,
-                    borderColor: statusColors.border,
-                    borderRadius: borderRadius.sm,
-                    paddingHorizontal: spacing[2],
-                    paddingVertical: spacing[1],
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.badgeText,
-                    {
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: statusColors.text,
-                    },
-                  ]}
-                >
+          {/* Destination Info Overlay */}
+          <View style={styles.heroContent}>
+            <View style={styles.badgesRow}>
+              <View style={[styles.statusBadge, { backgroundColor: statusColors.bg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }]}>
+                <Text style={[styles.badgeText, { color: statusColors.text, fontSize: 12, fontWeight: '600' }]}>
                   {destination.status}
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor: colors.muted,
-                    borderRadius: borderRadius.sm,
-                    paddingHorizontal: spacing[2],
-                    paddingVertical: spacing[1],
-                    marginLeft: spacing[2],
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.badgeText,
-                    {
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.foreground,
-                    },
-                  ]}
-                >
+              <View style={[styles.categoryBadge, { backgroundColor: categoryBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, marginLeft: 8 }]}>
+                <Text style={[styles.badgeText, { color: '#FFFFFF', fontSize: 12, fontWeight: '600' }]}>
                   {destination.category}
                 </Text>
               </View>
             </View>
+
+            <Text style={[styles.heroTitle, { fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', marginTop: 12 }]}>
+              {destination.name}
+            </Text>
+
+            <View style={[styles.locationRow, { marginTop: 8, flexDirection: 'row', alignItems: 'center' }]}>
+              <Feather name="map-pin" size={16} color="#FFFFFF" />
+              <Text style={[styles.locationText, { color: '#FFFFFF', fontSize: 14, marginLeft: 6 }]}>
+                {destination.location}
+              </Text>
+              <View style={[styles.ratingContainer, { flexDirection: 'row', alignItems: 'center', marginLeft: 16 }]}>
+                <Feather name="star" size={16} color="#F59E0B" fill="#F59E0B" />
+                <Text style={[styles.ratingText, { color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginLeft: 4 }]}>
+                  {destination.rating}
+                </Text>
+              </View>
+            </View>
           </View>
+        </View>
 
-          {/* Section Divider */}
-          <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: spacing[6] }]} />
-
+        {/* Content */}
+        <View style={[styles.content, { padding: 20 }]}>
           {/* About Section */}
-          <Text
-            style={[
-              styles.sectionTitle,
-              {
-                fontSize: typography.fontSize.xl,
-                fontWeight: typography.fontWeight.bold,
-                color: colors.foreground,
-                marginBottom: spacing[3],
-              },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { fontSize: 20, fontWeight: 'bold', color: colors.foreground, marginBottom: 12 }]}>
             About
           </Text>
-          <Text
-            style={[
-              styles.fullDescription,
-              {
-                fontSize: typography.fontSize.base,
-                color: colors.foreground,
-                lineHeight: typography.fontSize.base * typography.lineHeight.relaxed,
-                marginBottom: spacing[6],
-              },
-            ]}
-          >
+          <Text style={[styles.description, { fontSize: 14, color: colors.mutedForeground, lineHeight: 22, marginBottom: 16 }]}>
             {destination.fullDescription}
           </Text>
 
-          {/* Transport Options Section */}
-          <Text
-            style={[
-              styles.sectionTitle,
-              {
-                fontSize: typography.fontSize.xl,
-                fontWeight: typography.fontWeight.bold,
-                color: colors.foreground,
-                marginBottom: spacing[3],
-              },
-            ]}
-          >
+          {/* Best Time to Visit */}
+          <View style={[styles.bestTimeContainer, { flexDirection: 'row', alignItems: 'center', marginBottom: 24 }]}>
+            <Feather name="calendar" size={18} color={colors.primary} />
+            <Text style={[styles.bestTimeLabel, { fontSize: 14, fontWeight: '600', color: colors.foreground, marginLeft: 8 }]}>
+              Best time to visit:
+            </Text>
+            <Text style={[styles.bestTimeValue, { fontSize: 14, color: colors.mutedForeground, marginLeft: 8 }]}>
+              {destination.bestTimeToVisit}
+            </Text>
+          </View>
+
+          {/* Highlights Section */}
+          {destination.highlights && destination.highlights.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { fontSize: 20, fontWeight: 'bold', color: colors.foreground, marginBottom: 12 }]}>
+                Highlights
+              </Text>
+              <View style={[styles.highlightsGrid, { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 24 }]}>
+                {destination.highlights.map((highlight, index) => (
+                  <View 
+                    key={index} 
+                    style={[styles.highlightItem, { 
+                      flexDirection: 'row', 
+                      alignItems: 'center',
+                      width: '48%',
+                      marginRight: index % 2 === 0 ? '4%' : 0,
+                      marginBottom: 12 
+                    }]}
+                  >
+                    <View style={[styles.bulletPoint, { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginRight: 8 }]} />
+                    <Text style={[styles.highlightText, { fontSize: 14, color: colors.mutedForeground, flex: 1 }]}>
+                      {highlight}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Transport Options */}
+          <Text style={[styles.sectionTitle, { fontSize: 20, fontWeight: 'bold', color: colors.foreground, marginBottom: 16 }]}>
             Transport Options
           </Text>
           {destination.transport.map((transport, index) => (
             <View
               key={index}
-              style={[
-                styles.transportCard,
-                {
-                  borderColor: colors.border,
-                  borderRadius: borderRadius.lg,
-                  padding: spacing[4],
-                  marginBottom: spacing[2],
-                },
-              ]}
+              style={[styles.transportCard, { 
+                backgroundColor: colors.card,
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: colors.border
+              }]}
             >
-              <View style={styles.transportRow}>
-                <View
-                  style={[
-                    styles.transportIconContainer,
-                    {
-                      backgroundColor: `${colors.primary}1A`,
-                      borderRadius: borderRadius.full,
-                      width: 40,
-                      height: 40,
-                    },
-                  ]}
-                >
-                  <Feather name={getTransportIcon(transport.type) as any} size={24} color={colors.primary} />
-                </View>
-                <View style={styles.transportInfo}>
-                  <Text
-                    style={[
-                      styles.transportTitle,
-                      {
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.semibold,
-                        color: colors.foreground,
-                      },
-                    ]}
-                  >
-                    {transport.type.charAt(0).toUpperCase() + transport.type.slice(1)} from {transport.from}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.transportDetails,
-                      {
-                        fontSize: typography.fontSize.sm,
-                        color: colors.mutedForeground,
-                        marginTop: spacing[1],
-                      },
-                    ]}
-                  >
-                    {transport.price} • {transport.duration}
+              <View style={[styles.transportHeader, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={[styles.transportIcon, { width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.primary}20`, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Feather name={getTransportIcon(transport.type) as any} size={20} color={colors.primary} />
+                  </View>
+                  <Text style={[styles.transportType, { fontSize: 18, fontWeight: '600', color: colors.foreground, marginLeft: 12 }]}>
+                    {capitalizeTransportType(transport.type)}
                   </Text>
                 </View>
+                <Text style={[styles.transportPrice, { fontSize: 16, fontWeight: '700', color: colors.primary }]}>
+                  {transport.price}
+                </Text>
+              </View>
+
+              <View style={[styles.transportDetails, { marginLeft: 52 }]}>
+                <View style={[styles.detailRow, { flexDirection: 'row', alignItems: 'center', marginBottom: 8 }]}>
+                  <Feather name="clock" size={16} color={colors.mutedForeground} />
+                  <Text style={[styles.detailText, { fontSize: 14, color: colors.mutedForeground, marginLeft: 8 }]}>
+                    {transport.duration} from {transport.from}
+                  </Text>
+                </View>
+
+                {transport.schedule && (
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={[styles.scheduleText, { fontSize: 14, color: colors.foreground, marginBottom: 4 }]}>
+                      {transport.schedule}
+                    </Text>
+                    {transport.frequency && (
+                      <View style={[styles.frequencyBadge, { 
+                        backgroundColor: colors.primary,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 4,
+                        alignSelf: 'flex-start'
+                      }]}>
+                        <Text style={[styles.frequencyText, { fontSize: 12, color: '#FFFFFF', fontWeight: '600' }]}>
+                          {transport.frequency}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {transport.frequency && !transport.schedule && (
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={[styles.frequencyInfo, { fontSize: 14, color: colors.foreground }]}>
+                      {transport.frequency}
+                    </Text>
+                    {transport.availability && (
+                      <View style={[styles.availabilityBadge, { 
+                        backgroundColor: colors.primary,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 4,
+                        alignSelf: 'flex-start',
+                        marginTop: 6
+                      }]}>
+                        <Text style={[styles.availabilityText, { fontSize: 12, color: '#FFFFFF', fontWeight: '600' }]}>
+                          {transport.availability}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {transport.availability && !transport.frequency && (
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={[styles.availabilityInfo, { fontSize: 14, color: colors.foreground }]}>
+                      {transport.availability}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           ))}
-
-          {/* Best Time to Visit Section */}
-          <Text
-            style={[
-              styles.sectionTitle,
-              {
-                fontSize: typography.fontSize.xl,
-                fontWeight: typography.fontWeight.bold,
-                color: colors.foreground,
-                marginTop: spacing[6],
-                marginBottom: spacing[3],
-              },
-            ]}
-          >
-            Best Time to Visit
-          </Text>
-          <Text
-            style={[
-              styles.bestTime,
-              {
-                fontSize: typography.fontSize.base,
-                color: colors.foreground,
-                marginBottom: spacing[8],
-              },
-            ]}
-          >
-            {destination.bestTimeToVisit}
-          </Text>
-
-          {/* Book Now Button */}
-          <Pressable
-            style={[
-              styles.bookButton,
-              {
-                backgroundColor: colors.primary,
-                borderRadius: borderRadius.lg,
-                height: 48,
-              },
-            ]}
-            onPress={() => {
-              // Handle booking
-            }}
-          >
-            <Text
-              style={[
-                styles.bookButtonText,
-                {
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.bold,
-                  color: '#FFFFFF',
-                },
-              ]}
-            >
-              Book Now
-            </Text>
-          </Pressable>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -387,7 +299,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  heroImageContainer: {
+  heroContainer: {
     height: 400,
     position: 'relative',
   },
@@ -395,75 +307,66 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  floatingHeader: {
+  headerButtons: {
     position: 'absolute',
     top: 50,
     left: 16,
     right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  contentContainer: {
-    position: 'relative',
+  iconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
-  title: {},
-  locationRow: {
+  backText: {},
+  heroContent: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+  },
+  badgesRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  location: {},
-  ratingBadgesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  ratingText: {},
-  badges: {
-    flexDirection: 'row',
-  },
-  badge: {
-    borderWidth: 1,
-  },
+  statusBadge: {},
+  categoryBadge: {},
   badgeText: {},
-  divider: {
-    height: 1,
-  },
+  heroTitle: {},
+  locationRow: {},
+  locationText: {},
+  ratingContainer: {},
+  ratingText: {},
+  content: {},
   sectionTitle: {},
-  fullDescription: {},
-  transportCard: {
-    borderWidth: 1,
-  },
-  transportRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  transportIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  transportInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  transportTitle: {},
+  description: {},
+  bestTimeContainer: {},
+  bestTimeLabel: {},
+  bestTimeValue: {},
+  highlightsGrid: {},
+  highlightItem: {},
+  bulletPoint: {},
+  highlightText: {},
+  transportCard: {},
+  transportHeader: {},
+  transportIcon: {},
+  transportType: {},
+  transportPrice: {},
   transportDetails: {},
-  bestTime: {},
-  bookButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bookButtonText: {},
+  detailRow: {},
+  detailText: {},
+  scheduleText: {},
+  frequencyBadge: {},
+  frequencyText: {},
+  frequencyInfo: {},
+  availabilityBadge: {},
+  availabilityText: {},
+  availabilityInfo: {},
 });
 
 export default DestinationDetailScreen;

@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  profileImage?: string;
 }
 
 export interface Destination {
@@ -17,6 +18,7 @@ export interface Destination {
   status: 'Popular' | 'Trending' | 'Must Visit';
   bestTimeToVisit: string;
   fullDescription: string;
+  highlights?: string[];
 }
 
 export interface Transport {
@@ -24,6 +26,9 @@ export interface Transport {
   from: string;
   price: string;
   duration: string;
+  schedule?: string;
+  frequency?: string;
+  availability?: string;
 }
 
 export type Category = 'all' | 'Cultural' | 'Nature' | 'Adventure' | 'Beach' | 'Historical';

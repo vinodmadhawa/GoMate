@@ -7,6 +7,7 @@ import LandingScreen from '../screens/LandingScreen';
 import AuthScreen from '../screens/AuthScreen';
 import MainTabNavigator from './MainTabNavigator';
 import DestinationDetailScreen from '../screens/DestinationDetailScreen';
+import AccountSettingsScreen from '../screens/AccountSettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -46,10 +47,14 @@ const AppNavigator = () => {
               name="DestinationDetail"
               component={DestinationDetailScreen}
               options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerTitle: '',
-                headerTintColor: colors.foreground,
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="AccountSettings"
+              component={AccountSettingsScreen}
+              options={{
+                headerShown: false,
               }}
             />
           </>
