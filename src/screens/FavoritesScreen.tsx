@@ -1,54 +1,35 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   FlatList,
-  Pressable,
   StatusBar,
   Dimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
 import { useFavorites } from '../context/FavoritesContext';
 import { destinations } from '../data/destinations';
 import Header from '../components/Header';
-
-const DestinationCard: React.FC<{ destination: any }> = ({ destination }) => {
-  return (
-    <Pressable
-      style={{
-        flex: 1,
-        backgroundColor: 'transparent',
-        borderRadius: 12,
-        overflow: 'hidden',
-        padding: 12,
-        justifyContent: 'center',
-      }}
-      onPress={() => {}}
-    >
-      <Text style={{ fontSize: 16, fontWeight: '600', color: '#111' }}>
-        {destination?.name ?? 'Unknown'}
-      </Text>
-      {destination?.location ? (
-        <Text style={{ color: '#666', marginTop: 4 }}>{destination.location}</Text>
-      ) : null}
-    </Pressable>
-  );
-};
-
-import { LinearGradient } from 'expo-linear-gradient';
+import DestinationCard from '../components/DestinationCard';
 
 const FavoritesScreen = () => {
-  const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const { colors, typography, spacing, borderRadius, theme } = useTheme();
   const { favorites } = useFavorites();
-  const navigation = useNavigation();
 
   const favoriteDestinations = destinations.filter((dest) => favorites.includes(dest.id));
 
   const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
+
+  const renderItem = useCallback(({ item }: { item: typeof destinations[0] }) => (
+    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
+      <DestinationCard destination={item} />
+    </View>
+  ), [numColumns, spacing]);
+
+  const keyExtractor = useCallback((item: typeof destinations[0]) => item.id, []);
 
   const renderHeader = () => (
     <View style={[styles.headerSection, { paddingHorizontal: spacing[4], marginBottom: spacing[6] }]}>
@@ -137,8 +118,8 @@ const FavoritesScreen = () => {
       <Header />
       <FlatList
         data={favoriteDestinations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <DestinationCard destination={item} />}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         numColumns={numColumns}
         key={numColumns}
         contentContainerStyle={[
@@ -149,7 +130,7 @@ const FavoritesScreen = () => {
             paddingBottom: spacing[20],
           },
         ]}
-        columnWrapperStyle={numColumns > 1 ? { gap: spacing[6] } : undefined}
+        columnWrapperStyle={numColumns > 1 ? { gap: spacing[4] } : undefined}
         ItemSeparatorComponent={() => <View style={{ height: spacing[6] }} />}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}

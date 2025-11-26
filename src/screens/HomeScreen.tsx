@@ -9,8 +9,6 @@ import {
   Pressable,
   StatusBar,
   Dimensions,
-  Modal,
-  TouchableOpacity,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -158,7 +156,7 @@ const HomeScreen = () => {
 
       {/* Filter Dropdown */}
       <Pressable
-        onPress={() => setDropdownVisible(true)}
+        onPress={() => setDropdownVisible(!dropdownVisible)}
         style={[
           styles.filterButton,
           {
@@ -176,8 +174,53 @@ const HomeScreen = () => {
         <Text style={[styles.filterText, { fontSize: typography.fontSize.base, color: colors.foreground, marginLeft: spacing[3], flex: 1 }]}>
           {categoryFilter === 'all' ? 'All Categories' : categoryFilter}
         </Text>
-        <Feather name="chevron-down" size={20} color={colors.mutedForeground} />
+        <Feather name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={colors.mutedForeground} />
       </Pressable>
+
+      {/* Dropdown List */}
+      {dropdownVisible && (
+        <View style={[styles.dropdownList, { 
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          borderRadius: borderRadius.lg,
+          marginTop: spacing[2],
+          borderWidth: 1,
+          overflow: 'hidden',
+        }]}>
+          {categories.map((cat) => (
+            <Pressable
+              key={cat}
+              onPress={() => handleCategorySelect(cat)}
+              style={[
+                styles.dropdownListItem,
+                {
+                  backgroundColor: categoryFilter === cat ? colors.muted : 'transparent',
+                  paddingVertical: spacing[3],
+                  paddingHorizontal: spacing[4],
+                  borderBottomWidth: cat !== categories[categories.length - 1] ? 1 : 0,
+                  borderBottomColor: colors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.dropdownListItemText,
+                  {
+                    fontSize: typography.fontSize.base,
+                    color: categoryFilter === cat ? colors.primary : colors.foreground,
+                    fontWeight: categoryFilter === cat ? typography.fontWeight.semibold : typography.fontWeight.normal,
+                  },
+                ]}
+              >
+                {cat === 'all' ? 'All Categories' : cat}
+              </Text>
+              {categoryFilter === cat && (
+                <Feather name="check" size={20} color={colors.primary} />
+              )}
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       {/* Category Pills */}
       <View style={[styles.categoryPills, { marginTop: spacing[3], marginBottom: spacing[6] }]}>
@@ -238,7 +281,7 @@ const HomeScreen = () => {
         </Text>
       </View>
     </View>
-  ), [gradients, borderRadius, spacing, typography, colors, theme, categoryFilter, setCategoryFilter, categories, filteredDestinations.length, searchText, handleSearchChange, handleClearSearch]);
+  ), [gradients, borderRadius, spacing, typography, colors, theme, categoryFilter, setCategoryFilter, categories, filteredDestinations.length, searchText, handleSearchChange, handleClearSearch, dropdownVisible, handleCategorySelect]);
 
   const renderEmptyState = useMemo(() => (
     <View style={[styles.emptyState, { paddingVertical: spacing[12] }]}>
@@ -295,61 +338,6 @@ const HomeScreen = () => {
         maxToRenderPerBatch={6}
         initialNumToRender={6}
       />
-
-      {/* Category Dropdown Modal */}
-      <Modal
-        visible={dropdownVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDropdownVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setDropdownVisible(false)}
-        >
-          <View style={[styles.dropdownModal, { backgroundColor: colors.card }]}>
-            <View style={[styles.dropdownHeader, { borderBottomColor: colors.border, paddingVertical: spacing[3], paddingHorizontal: spacing[4] }]}>
-              <Text style={[styles.dropdownTitle, { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.foreground }]}>
-                Select Category
-              </Text>
-              <Pressable onPress={() => setDropdownVisible(false)}>
-                <Feather name="x" size={24} color={colors.foreground} />
-              </Pressable>
-            </View>
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                onPress={() => handleCategorySelect(cat)}
-                style={[
-                  styles.dropdownItem,
-                  {
-                    backgroundColor: categoryFilter === cat ? colors.muted : 'transparent',
-                    paddingVertical: spacing[3],
-                    paddingHorizontal: spacing[4],
-                    borderBottomColor: colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItemText,
-                    {
-                      fontSize: typography.fontSize.base,
-                      color: categoryFilter === cat ? colors.primary : colors.foreground,
-                      fontWeight: categoryFilter === cat ? typography.fontWeight.semibold : typography.fontWeight.normal,
-                    },
-                  ]}
-                >
-                  {cat === 'all' ? 'All Categories' : cat}
-                </Text>
-                {categoryFilter === cat && (
-                  <Feather name="check" size={20} color={colors.primary} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -411,6 +399,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   filterText: {},
+  dropdownList: {},
+  dropdownListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownListItemText: {},
   categoryPills: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -430,33 +425,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {},
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownModal: {
-    width: '80%',
-    maxWidth: 400,
-    borderRadius: 12,
-    overflow: 'hidden',
-    maxHeight: '70%',
-  },
-  dropdownHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-  },
-  dropdownTitle: {},
-  dropdownItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-  },
-  dropdownItemText: {},
 });
 
 export default HomeScreen;

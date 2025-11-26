@@ -82,16 +82,34 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
 
   const statusColors = getBadgeColor(destination.status);
 
-  // Get transport icons (max 3)
-  const transportIcons: Array<'navigation' | 'map'> = destination.transport.slice(0, 3).map((t) => {
-    switch (t.type) {
-      case 'train': return 'navigation' as const;
-      case 'bus': return 'navigation' as const;
-      case 'taxi': return 'navigation' as const;
-      case 'tuk-tuk': return 'navigation' as const;
-      default: return 'map' as const;
+  // Get transport icons (max 3) with proper icons for each transport type
+  const getTransportIcon = (type: string): keyof typeof Feather.glyphMap => {
+    const transportType = type.toLowerCase().trim();
+    switch (transportType) {
+      case 'train':
+        return 'navigation'; // Train icon
+      case 'bus':
+        return 'truck'; // Bus icon
+      case 'taxi':
+      case 'car':
+        return 'navigation-2'; // Taxi/car icon
+      case 'tuk-tuk':
+        return 'navigation-2'; // Tuk-tuk icon
+      case 'boat':
+      case 'ferry':
+        return 'anchor'; // Boat/ferry icon
+      case 'plane':
+      case 'flight':
+        return 'send'; // Plane icon
+      default:
+        return 'map-pin'; // Default icon
     }
-  });
+  };
+
+  const transportIcons = destination.transport.slice(0, 3).map((t) => ({
+    icon: getTransportIcon(t.type),
+    type: t.type,
+  }));
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -111,7 +129,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
       >
         {/* Image Section */}
         <View style={styles.imageContainer}>
-          <Animated.View style={{ transform: [{ scale: imageScaleAnim }], flex: 1 }}>
+          <Animated.View style={{ transform: [{ scale: imageScaleAnim }], width: '100%', height: '100%' }}>
             <Image
               source={
                 typeof destination.image === 'string'
@@ -126,9 +144,9 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
           
           {/* Image Overlay Gradient */}
           <LinearGradient
-            colors={['rgba(0, 0, 0, 0.6)', 'transparent']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 0, y: 0 }}
+            colors={['transparent', 'rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.8)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
 
@@ -205,9 +223,10 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
               style={[
                 styles.name,
                 {
-                  fontSize: typography.fontSize.xl,
+                  fontSize: typography.fontSize['2xl'],
                   fontWeight: typography.fontWeight.bold,
                   color: '#FFFFFF',
+                  marginBottom: spacing[1],
                 },
               ]}
               numberOfLines={1}
@@ -215,13 +234,14 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
               {destination.name}
             </Text>
             <View style={styles.locationRow}>
-              <Feather name="map-pin" size={16} color="rgba(255, 255, 255, 0.9)" />
+              <Feather name="map-pin" size={14} color="rgba(255, 255, 255, 0.9)" />
               <Text
                 style={[
                   styles.location,
                   {
                     fontSize: typography.fontSize.sm,
                     color: 'rgba(255, 255, 255, 0.9)',
+                    marginLeft: 4,
                   },
                 ]}
                 numberOfLines={1}
@@ -229,61 +249,60 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
                 {destination.location}
               </Text>
             </View>
-          </View>
-        </View>
+            
+            {/* Description */}
+            <Text
+              style={[
+                styles.description,
+                {
+                  fontSize: typography.fontSize.sm,
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  marginTop: spacing[2],
+                  lineHeight: 20,
+                },
+              ]}
+              numberOfLines={2}
+            >
+              {destination.description}
+            </Text>
 
-        {/* Content Section */}
-        <View style={[styles.content, { padding: spacing[4], gap: spacing[3] }]}>
-          {/* Description */}
-          <Text
-            style={[
-              styles.description,
-              {
-                fontSize: typography.fontSize.sm,
-                color: colors.mutedForeground,
-              },
-            ]}
-            numberOfLines={2}
-          >
-            {destination.description}
-          </Text>
-
-          {/* Bottom Row: Rating & Transport Icons */}
-          <View style={styles.bottomRow}>
-            {/* Rating */}
-            <View style={styles.rating}>
-              <Feather name="star" size={16} color={colors.accent} fill={colors.accent} />
-              <Text
-                style={[
-                  styles.ratingText,
-                  {
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.foreground,
-                    marginLeft: spacing[1],
-                  },
-                ]}
-              >
-                {destination.rating}
-              </Text>
-            </View>
-
-            {/* Transport Icons */}
-            <View style={styles.transportIcons}>
-              {transportIcons.map((icon, index) => (
-                <View
-                  key={index}
+            {/* Bottom Row: Rating & Transport Icons */}
+            <View style={[styles.bottomRow, { marginTop: spacing[3] }]}>
+              {/* Rating */}
+              <View style={styles.rating}>
+                <Feather name="star" size={18} color="#F59E0B" fill="#F59E0B" />
+                <Text
                   style={[
-                    styles.transportIcon,
+                    styles.ratingText,
                     {
-                      backgroundColor: colors.muted,
-                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.bold,
+                      color: '#FFFFFF',
+                      marginLeft: spacing[1],
                     },
                   ]}
                 >
-                  <Feather name={icon} size={16} color={colors.primary} />
-                </View>
-              ))}
+                  {destination.rating}
+                </Text>
+              </View>
+
+              {/* Transport Icons */}
+              <View style={styles.transportIcons}>
+                {transportIcons.map((transport, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.transportIcon,
+                      {
+                        backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                        borderRadius: 6,
+                      },
+                    ]}
+                  >
+                    <Feather name={transport.icon} size={16} color="#14B8A6" />
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -294,12 +313,13 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
+    borderWidth: 0,
     overflow: 'hidden',
-    flex: 1,
+    height: 360,
   },
   imageContainer: {
-    height: 192,
+    height: '100%',
+    width: '100%',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -309,23 +329,23 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
+    top: 16,
+    left: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 0,
   },
   categoryBadge: {
     position: 'absolute',
-    top: 12,
-    left: 80, // After status badge
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    top: 16,
+    right: 60,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   favoriteButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 16,
+    right: 16,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -334,27 +354,20 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
   },
-  name: {
-    marginBottom: 4,
-  },
+  name: {},
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
   location: {
     flex: 1,
   },
-  content: {
-    flexDirection: 'column',
-  },
-  description: {
-    lineHeight: 20,
-  },
+  description: {},
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -367,11 +380,11 @@ const styles = StyleSheet.create({
   ratingText: {},
   transportIcons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   transportIcon: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },

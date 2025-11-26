@@ -50,11 +50,6 @@ const MainTabNavigator = () => {
         component={FavoritesScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Feather name="heart" size={size} color={color} />,
-          tabBarBadge: favorites.length > 0 ? favorites.length : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: colors.primary,
-            color: '#FFFFFF',
-          },
         }}
       />
       <Tab.Screen
