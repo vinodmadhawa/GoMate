@@ -13,6 +13,7 @@ import {
   Dimensions,
   useWindowDimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -76,14 +77,16 @@ const Header: React.FC<HeaderProps> = ({
     // TEMPORARY FIX: Direct storage clear and reload
     try {
       await AsyncStorage.clear();
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.clear();
+      if (Platform.OS === 'web') {
+        (global as any).localStorage?.clear();
+        (global as any).location.href = '/';
       }
-      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       // Fallback: just reload
-      window.location.reload();
+      if (Platform.OS === 'web') {
+        (global as any).location?.reload();
+      }
     }
   };
 

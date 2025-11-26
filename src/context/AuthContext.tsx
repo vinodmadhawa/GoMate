@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { User } from '../types';
@@ -203,9 +204,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('✅ User state cleared');
 
       // Force immediate reload on web
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web') {
         console.log('🔄 Reloading page...');
-        window.location.href = window.location.origin;
+        (global as any).location.href = (global as any).location.origin;
       } else {
         Toast.show({
           type: 'success',
