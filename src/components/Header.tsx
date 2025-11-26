@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
@@ -29,11 +30,16 @@ const Header: React.FC<HeaderProps> = ({
   showUserBadge = true,
   showActions = true,
 }) => {
+  const { width } = useWindowDimensions();
   const { colors, typography, spacing, borderRadius, theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotifications();
   const navigation = useNavigation();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Responsive breakpoints
+  const isSmallScreen = width < 480;
+  const isTinyScreen = width < 360;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -63,11 +69,14 @@ const Header: React.FC<HeaderProps> = ({
     return new Date(timestamp).toLocaleDateString();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    console.log('🔘 Logout button clicked in Header');
     if (Platform.OS === 'web') {
       const confirmed = window.confirm('Are you sure you want to logout?');
+      console.log('Confirmation result:', confirmed);
       if (confirmed) {
-        logout();
+        console.log('Calling logout function...');
+        await logout();
       }
     } else {
       Alert.alert(
@@ -80,7 +89,10 @@ const Header: React.FC<HeaderProps> = ({
           },
           {
             text: 'Logout',
-            onPress: () => logout(),
+            onPress: async () => {
+              console.log('Calling logout function...');
+              await logout();
+            },
             style: 'destructive',
           },
         ]
@@ -102,9 +114,13 @@ const Header: React.FC<HeaderProps> = ({
             colors={['#34D399', '#0EA5E9']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.logo, { borderRadius: borderRadius.sm }]}
+            style={[styles.logo, { 
+              borderRadius: borderRadius.sm,
+              width: isTinyScreen ? 32 : 40,
+              height: isTinyScreen ? 32 : 40,
+            }]}
           >
-            <Text style={[styles.logoText, { fontSize: typography.fontSize.xl }]}>
+            <Text style={[styles.logoText, { fontSize: isTinyScreen ? typography.fontSize.base : typography.fontSize.xl }]}>
               GM
             </Text>
           </LinearGradient>
@@ -113,7 +129,7 @@ const Header: React.FC<HeaderProps> = ({
               style={[
                 styles.title,
                 {
-                  fontSize: typography.fontSize.xl,
+                  fontSize: isTinyScreen ? typography.fontSize.base : typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
                   color: colors.foreground,
                 },
@@ -121,24 +137,26 @@ const Header: React.FC<HeaderProps> = ({
             >
               GoMate
             </Text>
-            <Text
-              style={[
-                styles.subtitle,
-                {
-                  fontSize: typography.fontSize.xs,
-                  color: colors.mutedForeground,
-                },
-              ]}
-            >
-              Explore Sri Lanka
-            </Text>
+            {!isSmallScreen && (
+              <Text
+                style={[
+                  styles.subtitle,
+                  {
+                    fontSize: typography.fontSize.xs,
+                    color: colors.mutedForeground,
+                  },
+                ]}
+              >
+                Explore Sri Lanka
+              </Text>
+            )}
           </View>
         </View>
 
         {/* Right Section - User Badge and Actions */}
         <View style={styles.rightSection}>
-          {/* User Badge (hidden on small screens in production) */}
-          {showUserBadge && user && (
+          {/* User Badge (hidden on small screens) */}
+          {showUserBadge && user && !isSmallScreen && (
             <Pressable
               onPress={() => navigation.navigate('Profile' as never)}
               style={[
@@ -182,6 +200,27 @@ const Header: React.FC<HeaderProps> = ({
             </Pressable>
           )}
 
+          {/* Profile Icon for Small Screens */}
+          {user && isSmallScreen && (
+            <Pressable
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('Profile' as never)}
+            >
+              {user.profileImage ? (
+                <Image
+                  source={{ uri: user.profileImage }}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                  }}
+                />
+              ) : (
+                <Feather name="user" size={isTinyScreen ? 18 : 20} color={colors.foreground} />
+              )}
+            </Pressable>
+          )}
+
           {/* Action Buttons */}
           {showActions && (
             <>
@@ -191,7 +230,7 @@ const Header: React.FC<HeaderProps> = ({
                   style={styles.actionButton}
                   onPress={() => setShowNotifications(!showNotifications)}
                 >
-                  <Feather name="bell" size={20} color={colors.foreground} />
+                  <Feather name="bell" size={isTinyScreen ? 18 : 20} color={colors.foreground} />
                   {unreadCount > 0 && (
                     <View
                       style={[
@@ -227,7 +266,7 @@ const Header: React.FC<HeaderProps> = ({
               >
                 <Feather
                   name={theme === 'light' ? 'moon' : 'sun'}
-                  size={20}
+                  size={isTinyScreen ? 18 : 20}
                   color={colors.foreground}
                 />
               </Pressable>
@@ -238,7 +277,7 @@ const Header: React.FC<HeaderProps> = ({
                   style={styles.actionButton}
                   onPress={handleLogout}
                 >
-                  <Feather name="log-out" size={20} color={colors.foreground} />
+                  <Feather name="log-out" size={isTinyScreen ? 18 : 20} color={colors.foreground} />
                 </Pressable>
               )}
             </>
@@ -521,7 +560,7 @@ const styles = StyleSheet.create({
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   userBadge: {
     flexDirection: 'row',
@@ -531,9 +570,9 @@ const styles = StyleSheet.create({
     maxWidth: 150,
   },
   actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',

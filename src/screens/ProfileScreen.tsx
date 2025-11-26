@@ -64,11 +64,11 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (Platform.OS === 'web') {
       const confirmed = (global as any).confirm?.(t.logoutConfirm);
       if (confirmed) {
-        logout();
+        await logout();
       }
     } else {
       Alert.alert(
@@ -81,7 +81,7 @@ const ProfileScreen = () => {
           },
           {
             text: t.logout,
-            onPress: () => logout(),
+            onPress: async () => await logout(),
             style: 'destructive',
           },
         ]

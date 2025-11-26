@@ -192,8 +192,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      console.log('🚪 Logout initiated...');
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
+      console.log('✅ User data removed from storage');
       setUser(null);
+      console.log('✅ User state cleared');
 
       Toast.show({
         type: 'success',
@@ -202,8 +205,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         position: 'top',
         visibilityTime: 3000,
       });
+      console.log('✅ Logout complete!');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('❌ Error logging out:', error);
       Toast.show({
         type: 'error',
         text1: 'Logout Error',
