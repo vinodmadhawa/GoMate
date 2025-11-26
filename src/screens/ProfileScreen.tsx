@@ -14,6 +14,7 @@ import {
   Modal,
   Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
@@ -65,27 +66,19 @@ const ProfileScreen = () => {
   };
 
   const handleLogout = async () => {
-    if (Platform.OS === 'web') {
-      const confirmed = (global as any).confirm?.(t.logoutConfirm);
-      if (confirmed) {
-        await logout();
+    // TEMPORARY FIX: Direct storage clear and reload
+    try {
+      await AsyncStorage.clear();
+      if (Platform.OS === 'web') {
+        (global as any).localStorage?.clear();
+        (global as any).location.href = '/';
       }
-    } else {
-      Alert.alert(
-        t.logout,
-        t.logoutConfirm,
-        [
-          {
-            text: t.cancel,
-            style: 'cancel',
-          },
-          {
-            text: t.logout,
-            onPress: async () => await logout(),
-            style: 'destructive',
-          },
-        ]
-      );
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: just reload
+      if (Platform.OS === 'web') {
+        (global as any).location?.reload();
+      }
     }
   };
 

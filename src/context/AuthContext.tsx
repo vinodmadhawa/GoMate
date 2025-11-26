@@ -193,18 +193,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log('🚪 Logout initiated...');
-      await AsyncStorage.removeItem(USER_STORAGE_KEY);
-      console.log('✅ User data removed from storage');
+      
+      // Clear all storage
+      await AsyncStorage.clear();
+      console.log('✅ All storage cleared');
+      
+      // Clear user state
       setUser(null);
       console.log('✅ User state cleared');
 
-      Toast.show({
-        type: 'success',
-        text1: 'Logged Out Successfully',
-        text2: 'See you next time!',
-        position: 'top',
-        visibilityTime: 3000,
-      });
+      // Force immediate reload on web
+      if (typeof window !== 'undefined') {
+        console.log('🔄 Reloading page...');
+        window.location.href = window.location.origin;
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: 'Logged Out Successfully',
+          text2: 'See you next time!',
+          position: 'top',
+          visibilityTime: 2000,
+        });
+      }
       console.log('✅ Logout complete!');
     } catch (error) {
       console.error('❌ Error logging out:', error);

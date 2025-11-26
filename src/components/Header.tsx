@@ -71,32 +71,19 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleLogout = async () => {
     console.log('🔘 Logout button clicked in Header');
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to logout?');
-      console.log('Confirmation result:', confirmed);
-      if (confirmed) {
-        console.log('Calling logout function...');
-        await logout();
+    console.log('Platform:', Platform.OS);
+    
+    // TEMPORARY FIX: Direct storage clear and reload
+    try {
+      await AsyncStorage.clear();
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
       }
-    } else {
-      Alert.alert(
-        'Logout',
-        'Are you sure you want to logout?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Logout',
-            onPress: async () => {
-              console.log('Calling logout function...');
-              await logout();
-            },
-            style: 'destructive',
-          },
-        ]
-      );
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: just reload
+      window.location.reload();
     }
   };
 
