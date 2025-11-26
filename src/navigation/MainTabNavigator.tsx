@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../theme';
+import { useLanguage } from '../context/LanguageContext';
 import { useFavorites } from '../context/FavoritesContext';
 import HomeScreen from '../screens/HomeScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
@@ -12,6 +13,7 @@ const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
   const { colors, spacing } = useTheme();
+  const { t } = useLanguage();
   const { favorites } = useFavorites();
 
   return (
@@ -42,6 +44,7 @@ const MainTabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
+          tabBarLabel: t.home,
           tabBarIcon: ({ color, size }) => <Feather name="home" size={size} color={color} />,
         }}
       />
@@ -49,6 +52,7 @@ const MainTabNavigator = () => {
         name="Favorites"
         component={FavoritesScreen}
         options={{
+          tabBarLabel: t.favorites,
           tabBarIcon: ({ color, size }) => <Feather name="heart" size={size} color={color} />,
         }}
       />
@@ -56,6 +60,7 @@ const MainTabNavigator = () => {
         name="Explore"
         component={ExploreScreen}
         options={{
+          tabBarLabel: t.explore,
           tabBarIcon: ({ color, size }) => <Feather name="map" size={size} color={color} />,
         }}
       />
@@ -63,6 +68,7 @@ const MainTabNavigator = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
+          tabBarLabel: t.profile,
           tabBarIcon: ({ color, size }) => <Feather name="user" size={size} color={color} />,
         }}
       />

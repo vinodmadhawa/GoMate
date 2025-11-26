@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../theme';
+import { useLanguage } from '../context/LanguageContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { destinations } from '../data/destinations';
 import Header from '../components/Header';
@@ -17,6 +18,7 @@ import DestinationCard from '../components/DestinationCard';
 
 const FavoritesScreen = () => {
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
+  const { t } = useLanguage();
   const { favorites } = useFavorites();
 
   const favoriteDestinations = destinations.filter((dest) => favorites.includes(dest.id));
@@ -45,7 +47,7 @@ const FavoritesScreen = () => {
             },
           ]}
         >
-          My Favorites
+          {t.myFavorites}
         </Text>
       </View>
       <Text
@@ -57,7 +59,7 @@ const FavoritesScreen = () => {
           },
         ]}
       >
-        Your saved destinations for quick access
+        {t.startExploring}
       </Text>
     </View>
   );
@@ -92,7 +94,7 @@ const FavoritesScreen = () => {
           },
         ]}
       >
-        No favorites yet
+        {t.noFavorites}
       </Text>
       <Text
         style={[
@@ -107,7 +109,7 @@ const FavoritesScreen = () => {
           },
         ]}
       >
-        Start exploring destinations and save your favorites by tapping the heart icon
+        {t.startExploring}
       </Text>
     </View>
   );

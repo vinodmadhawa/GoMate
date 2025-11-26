@@ -8,7 +8,7 @@ import {
   Pressable,
   StatusBar,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
@@ -52,13 +52,26 @@ const DestinationDetailScreen = () => {
   const statusColors = getBadgeColors(destination.status);
   const categoryBg = theme === 'dark' ? '#374151' : '#1F2937';
 
-  const getTransportIcon = (type: string) => {
-    switch (type) {
-      case 'train': return 'train';
-      case 'bus': return 'truck';
-      case 'taxi': return 'car';
-      case 'tuk-tuk': return 'navigation';
-      default: return 'map';
+  const getTransportIcon = (type: string): { library: 'ionicons' | 'feather'; icon: string } => {
+    const transportType = type.toLowerCase().trim();
+    switch (transportType) {
+      case 'train':
+        return { library: 'ionicons', icon: 'train' };
+      case 'bus':
+        return { library: 'ionicons', icon: 'bus' };
+      case 'taxi':
+      case 'car':
+        return { library: 'ionicons', icon: 'car' };
+      case 'tuk-tuk':
+        return { library: 'ionicons', icon: 'car' };
+      case 'boat':
+      case 'ferry':
+        return { library: 'ionicons', icon: 'boat' };
+      case 'plane':
+      case 'flight':
+        return { library: 'ionicons', icon: 'airplane' };
+      default:
+        return { library: 'ionicons', icon: 'car' };
     }
   };
 
@@ -67,12 +80,64 @@ const DestinationDetailScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView 
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
+    <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }]}>
+        <StatusBar barStyle="light-content" />
+        
+        {/* Fixed Header */}
+        <View
+          style={{
+            backgroundColor: colors.card,
+            borderBottomColor: colors.border,
+            borderBottomWidth: 1,
+            paddingHorizontal: spacing[4],
+            paddingVertical: spacing[4],
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+          }}
+        >
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={{ padding: spacing[2] }}
+          >
+            <Feather name="x" size={24} color={colors.foreground} />
+          </Pressable>
+          <Text
+            style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+              flex: 1,
+              textAlign: 'center',
+              marginHorizontal: spacing[2],
+            }}
+            numberOfLines={1}
+          >
+            {destination.name}
+          </Text>
+          <Pressable
+            onPress={() => toggleFavorite(destination.id)}
+            style={{ padding: spacing[2] }}
+          >
+            <Feather
+              name="heart"
+              size={24}
+              color={favorite ? colors.destructive : colors.foreground}
+              fill={favorite ? colors.destructive : 'transparent'}
+            />
+          </Pressable>
+        </View>
+
+        {/* Scrollable Content */}
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          bounces={true}
+          style={{ flex: 1 }}
+        >
         {/* Hero Image with Overlay */}
         <View style={styles.heroContainer}>
           <Image 
@@ -90,30 +155,6 @@ const DestinationDetailScreen = () => {
             colors={['rgba(0, 0, 0, 0.6)', 'rgba(0, 0, 0, 0.3)', 'transparent']}
             style={StyleSheet.absoluteFill}
           />
-
-          {/* Back & Favorite Buttons */}
-          <View style={styles.headerButtons}>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={[styles.iconButton, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}
-            >
-              <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={[styles.backText, { marginLeft: 4, color: '#FFFFFF', fontSize: 16, fontWeight: '600' }]}>
-                Back
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => toggleFavorite(destination.id)}
-              style={[styles.iconButton, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}
-            >
-              <Feather
-                name="heart"
-                size={24}
-                color="#FFFFFF"
-                fill={favorite ? '#FFFFFF' : 'transparent'}
-              />
-            </Pressable>
-          </View>
 
           {/* Destination Info Overlay */}
           <View style={styles.heroContent}>
@@ -217,7 +258,14 @@ const DestinationDetailScreen = () => {
               <View style={[styles.transportHeader, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <View style={[styles.transportIcon, { width: 40, height: 40, borderRadius: 20, backgroundColor: `${colors.primary}20`, alignItems: 'center', justifyContent: 'center' }]}>
-                    <Feather name={getTransportIcon(transport.type) as any} size={20} color={colors.primary} />
+                    {(() => {
+                      const iconInfo = getTransportIcon(transport.type);
+                      return iconInfo.library === 'ionicons' ? (
+                        <Ionicons name={iconInfo.icon as any} size={20} color={colors.primary} />
+                      ) : (
+                        <Feather name={iconInfo.icon as any} size={20} color={colors.primary} />
+                      );
+                    })()}
                   </View>
                   <Text style={[styles.transportType, { fontSize: 18, fontWeight: '600', color: colors.foreground, marginLeft: 12 }]}>
                     {capitalizeTransportType(transport.type)}
@@ -291,13 +339,47 @@ const DestinationDetailScreen = () => {
           ))}
         </View>
 
-        <View style={{ height: 40 }} />
+        {/* Footer */}
+        <View
+          style={{
+            paddingVertical: spacing[8],
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: typography.fontSize.xs,
+              color: colors.mutedForeground,
+              textAlign: 'center',
+            }}
+          >
+            GoMate © 2025
+          </Text>
+          <Text
+            style={{
+              fontSize: typography.fontSize.xs,
+              color: colors.mutedForeground,
+              textAlign: 'center',
+              marginTop: spacing[1],
+            }}
+          >
+            All rights reserved
+          </Text>
+        </View>
       </ScrollView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

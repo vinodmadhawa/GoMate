@@ -7,6 +7,7 @@ import { ThemeProvider } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { FavoritesProvider } from './src/context/FavoritesContext';
+import { LanguageProvider } from './src/context/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -15,17 +16,19 @@ export default function App() {
   
   return (
     <RootComponent style={{ flex: 1 }}>
-      <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <FavoritesProvider>
-              <AppNavigator />
-              <StatusBar style="auto" />
-              <Toast />
-            </FavoritesProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <FavoritesProvider>
+                <AppNavigator />
+                <StatusBar style="auto" />
+                <Toast />
+              </FavoritesProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </RootComponent>
   );
 }

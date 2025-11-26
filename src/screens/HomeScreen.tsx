@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../theme';
+import { useLanguage } from '../context/LanguageContext';
 import { destinations } from '../data/destinations';
 import { Category } from '../types';
 import Header from '../components/Header';
@@ -20,12 +22,22 @@ import DestinationCard from '../components/DestinationCard';
 
 const HomeScreen = () => {
   const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
+  const { t } = useLanguage();
+  const route = useRoute();
   const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category>('all');
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const categories: Category[] = ['all', 'Cultural', 'Nature', 'Adventure', 'Beach', 'Historical'];
+
+  // Handle category navigation from ExploreScreen
+  useEffect(() => {
+    const params = route.params as { category?: Category } | undefined;
+    if (params?.category) {
+      setCategoryFilter(params.category);
+    }
+  }, [route.params]);
 
   // Debounce search input
   useEffect(() => {
@@ -97,7 +109,7 @@ const HomeScreen = () => {
             },
           ]}
         >
-          Discover Sri Lanka
+          {t.discoverSriLanka}
         </Text>
         <Text
           style={[
@@ -108,7 +120,7 @@ const HomeScreen = () => {
             },
           ]}
         >
-          Explore breathtaking destinations
+          {t.exploreBeautiful}
         </Text>
       </LinearGradient>
 
@@ -135,7 +147,7 @@ const HomeScreen = () => {
               borderWidth: 1,
             },
           ]}
-          placeholder="Search by name, location, or category..."
+          placeholder={t.searchDestinations}
           placeholderTextColor={colors.mutedForeground}
           value={searchText}
           onChangeText={handleSearchChange}
@@ -172,7 +184,7 @@ const HomeScreen = () => {
       >
         <Feather name="filter" size={18} color={colors.foreground} />
         <Text style={[styles.filterText, { fontSize: typography.fontSize.base, color: colors.foreground, marginLeft: spacing[3], flex: 1 }]}>
-          {categoryFilter === 'all' ? 'All Categories' : categoryFilter}
+          {categoryFilter === 'all' ? t.allDestinations : t[categoryFilter.toLowerCase() as keyof typeof t] || categoryFilter}
         </Text>
         <Feather name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={colors.mutedForeground} />
       </Pressable>
@@ -212,7 +224,7 @@ const HomeScreen = () => {
                   },
                 ]}
               >
-                {cat === 'all' ? 'All Categories' : cat}
+                {cat === 'all' ? t.allDestinations : t[cat.toLowerCase() as keyof typeof t] || cat}
               </Text>
               {categoryFilter === cat && (
                 <Feather name="check" size={20} color={colors.primary} />
@@ -243,12 +255,12 @@ const HomeScreen = () => {
                 styles.categoryPillText,
                 {
                   fontSize: typography.fontSize.sm,
-                  fontWeight: typography.fontWeight.semibold,
+                  fontWeight: typography.fontWeight.medium,
                   color: categoryFilter === cat ? '#FFFFFF' : colors.foreground,
                 },
               ]}
             >
-              {cat === 'all' ? 'All' : cat}
+              {cat === 'all' ? t.allDestinations : t[cat.toLowerCase() as keyof typeof t] || cat}
             </Text>
           </Pressable>
         ))}

@@ -48,6 +48,8 @@ const AppNavigator = () => {
               component={DestinationDetailScreen}
               options={{
                 headerShown: false,
+                presentation: 'modal',
+                cardStyle: { backgroundColor: 'transparent' },
               }}
             />
             <Stack.Screen
@@ -55,6 +57,8 @@ const AppNavigator = () => {
               component={AccountSettingsScreen}
               options={{
                 headerShown: false,
+                presentation: 'modal',
+                cardStyle: { backgroundColor: 'transparent' },
               }}
             />
           </>

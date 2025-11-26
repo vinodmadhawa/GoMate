@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,7 @@ const USERS_STORAGE_KEY = 'gomate_users';
 
 const AccountSettingsScreen = () => {
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { addNotification } = useNotifications();
   const navigation = useNavigation();
 
@@ -39,6 +39,15 @@ const AccountSettingsScreen = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Sync component state with user context when user updates
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+      setProfileImage(user.profileImage || null);
+    }
+  }, [user]);
 
   const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -129,7 +138,7 @@ const AccountSettingsScreen = () => {
         return;
       }
 
-      // Update user
+      // Update user - preserve all existing fields including password
       const updatedUser: User = {
         ...user!,
         name,
@@ -146,6 +155,9 @@ const AccountSettingsScreen = () => {
       // Update current user
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
 
+      // Update context with new user data
+      await updateUser(updatedUser);
+
       // Add notification
       addNotification({
         type: 'profile_updated',
@@ -153,21 +165,14 @@ const AccountSettingsScreen = () => {
         message: 'Your profile information has been successfully updated',
       });
 
-      // Update context (force re-render by logging out and back in)
       Toast.show({
         type: 'success',
         text1: 'Profile Updated',
-        text2: 'Your changes have been saved. Please login again.',
+        text2: 'Your changes have been saved successfully',
         position: 'top',
-        visibilityTime: 3000,
       });
 
       setIsEditing(false);
-
-      // Logout after delay to show toast
-      setTimeout(() => {
-        logout();
-      }, 2000);
     } catch (error) {
       console.error('Error saving profile:', error);
       Toast.show({
@@ -259,6 +264,7 @@ const AccountSettingsScreen = () => {
 
   const handleDeleteAccount = () => {
     if (Platform.OS === 'web') {
+      // @ts-ignore - window is available in web environment
       const confirmed = window.confirm(
         'Are you sure you want to delete your account? This action cannot be undone.'
       );
@@ -315,49 +321,54 @@ const AccountSettingsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
-      
-      {/* Fixed Header */}
-      <View
-        style={{
-          backgroundColor: colors.card,
-          borderBottomColor: colors.border,
-          borderBottomWidth: 1,
-          paddingHorizontal: spacing[4],
-          paddingVertical: spacing[4],
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={{ padding: spacing[2] }}
-        >
-          <Feather name="arrow-left" size={24} color={colors.foreground} />
-        </Pressable>
-        <Text
+    <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }]}>
+        <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
+        
+        {/* Fixed Header */}
+        <View
           style={{
-            fontSize: typography.fontSize.xl,
-            fontWeight: typography.fontWeight.bold,
-            color: colors.foreground,
+            backgroundColor: colors.card,
+            borderBottomColor: colors.border,
+            borderBottomWidth: 1,
+            paddingHorizontal: spacing[4],
+            paddingVertical: spacing[4],
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
           }}
         >
-          Account Settings
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={{ padding: spacing[2] }}
+          >
+            <Feather name="x" size={24} color={colors.foreground} />
+          </Pressable>
+          <Text
+            style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.foreground,
+            }}
+          >
+            Account Settings
+          </Text>
+          <View style={{ width: 40 }} />
+        </View>
 
-      {/* Scrollable Content */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: spacing[4],
-          paddingTop: spacing[6],
-          paddingBottom: spacing[20],
-        }}
-      >
+        {/* Scrollable Content */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: spacing[4],
+            paddingTop: spacing[6],
+            paddingBottom: 40,
+          }}
+          bounces={true}
+          style={{ flex: 1 }}
+        >
         {/* Profile Photo Section */}
         <View
           style={[
@@ -935,11 +946,19 @@ const AccountSettingsScreen = () => {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+        </View>
+      </View>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

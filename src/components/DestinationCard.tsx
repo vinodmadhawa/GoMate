@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 0,
     overflow: 'hidden',
-    height: 360,
+    height: 280,
   },
   imageContainer: {
     height: '100%',
