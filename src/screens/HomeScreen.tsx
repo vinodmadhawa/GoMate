@@ -9,6 +9,7 @@ import {
   Pressable,
   StatusBar,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,10 +25,15 @@ const HomeScreen = () => {
   const { colors, typography, spacing, borderRadius, gradients, theme } = useTheme();
   const { t } = useLanguage();
   const route = useRoute();
+  const { width } = useWindowDimensions();
   const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category>('all');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  // Responsive columns based on screen width
+  const numColumns = width >= 1200 ? 3 : width >= 768 ? 2 : 1;
+  const cardWidth = width >= 768 ? (width - spacing[4] * (numColumns + 1)) / numColumns : width - spacing[4] * 2;
 
   const categories: Category[] = ['all', 'Cultural', 'Nature', 'Adventure', 'Beach', 'Historical'];
 
@@ -312,10 +318,8 @@ const HomeScreen = () => {
     </View>
   ), [spacing, typography, colors]);
 
-  const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
-
   const renderItem = useCallback(({ item }: { item: typeof destinations[0] }) => (
-    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
+    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1], marginBottom: spacing[4] }}>
       <DestinationCard destination={item} />
     </View>
   ), [numColumns, spacing]);

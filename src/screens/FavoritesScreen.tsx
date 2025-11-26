@@ -6,7 +6,7 @@ import {
   SafeAreaView,
   FlatList,
   StatusBar,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -17,16 +17,17 @@ import Header from '../components/Header';
 import DestinationCard from '../components/DestinationCard';
 
 const FavoritesScreen = () => {
+  const { width } = useWindowDimensions();
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
   const { t } = useLanguage();
   const { favorites } = useFavorites();
 
   const favoriteDestinations = destinations.filter((dest) => favorites.includes(dest.id));
 
-  const numColumns = Dimensions.get('window').width > 768 ? 3 : Dimensions.get('window').width > 480 ? 2 : 1;
+  const numColumns = width >= 1200 ? 3 : width >= 768 ? 2 : 1;
 
   const renderItem = useCallback(({ item }: { item: typeof destinations[0] }) => (
-    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1] }}>
+    <View style={{ flex: 1 / numColumns, paddingHorizontal: spacing[1], marginBottom: spacing[4] }}>
       <DestinationCard destination={item} />
     </View>
   ), [numColumns, spacing]);

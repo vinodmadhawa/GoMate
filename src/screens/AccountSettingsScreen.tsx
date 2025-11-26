@@ -11,6 +11,7 @@ import {
   StatusBar,
   Image,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -27,6 +28,7 @@ const USER_STORAGE_KEY = 'gomate_user';
 const USERS_STORAGE_KEY = 'gomate_users';
 
 const AccountSettingsScreen = () => {
+  const { width } = useWindowDimensions();
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
   const { user, logout, updateUser } = useAuth();
   const { addNotification } = useNotifications();
@@ -390,7 +392,7 @@ const AccountSettingsScreen = () => {
 
   return (
     <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }]}>
+      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', maxWidth: width >= 768 ? 600 : '100%', width: '100%', alignSelf: 'center' }]}>
         <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} />
         
         {/* Fixed Header */}

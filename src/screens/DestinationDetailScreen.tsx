@@ -7,6 +7,7 @@ import {
   Image,
   Pressable,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,7 @@ import AnimatedPressable from '../components/AnimatedPressable';
 import { getDestinationById } from '../data/destinations';
 
 const DestinationDetailScreen = () => {
+  const { width } = useWindowDimensions();
   const route = useRoute();
   const navigation = useNavigation();
   const { colors, typography, spacing, borderRadius, theme } = useTheme();
@@ -82,7 +84,7 @@ const DestinationDetailScreen = () => {
 
   return (
     <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }]}>
+      <View style={[styles.modalContainer, { backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', maxWidth: width >= 768 ? 800 : '100%', width: '100%', alignSelf: 'center' }]}>
         <StatusBar barStyle="light-content" />
         
         {/* Fixed Header */}
