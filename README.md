@@ -254,53 +254,6 @@ Use any email and password combination:
 5. **Dark Mode**: Toggle theme and verify persistence
 6. **Details**: View transport options and destination info
 
-## 📸 Screenshots
-
-Key screens to capture:
-1. Login Screen (Light & Dark)
-2. Home Screen with destinations list
-3. Destination Details with transport
-4. Favorites Screen
-5. Profile Screen with theme toggle
-6. Search and Filter functionality
-
-## 🎥 Demo Video
-
-Record a 2-minute demo showing:
-1. Login/Registration (15 seconds)
-2. Browse destinations (20 seconds)
-3. Search and filter (15 seconds)
-4. View destination details and transport (30 seconds)
-5. Add/remove favorites (15 seconds)
-6. Toggle dark mode (10 seconds)
-7. Profile and logout (15 seconds)
-
-## 🏆 Evaluation Criteria Coverage
-
-| Criteria | Implementation | Marks |
-|----------|---------------|-------|
-| Authentication & Validation | ✅ Yup validation, secure storage, login flow | 15 |
-| Navigation | ✅ Stack + Bottom Tab navigators | 10 |
-| API Integration | ✅ Mock API with realistic data | 15 |
-| State Management | ✅ Redux Toolkit for auth & favorites | 15 |
-| UI/UX Design | ✅ Professional, responsive, modern | 15 |
-| Code Quality | ✅ TypeScript, modular, reusable | 20 |
-| Demo Video | Create 2-min demo | 5 |
-| **Bonus: Dark Mode** | ✅ Full theme system with toggle | +5 |
-
-## 🔧 Best Practices Implemented
-
-- **Feature-based commits**: Organized git history
-- **TypeScript**: Type safety throughout
-- **Modular code**: Reusable components
-- **State management**: Centralized with Redux
-- **Validation**: Proper form validation
-- **Error handling**: Try-catch blocks
-- **Consistent styling**: Theme-based colors
-- **Responsive design**: Works on all screen sizes
-- **Performance**: Optimized renders
-- **Security**: Secure token storage
-
 ## 📝 Notes
 
 - All tourist place data is realistic and researched
