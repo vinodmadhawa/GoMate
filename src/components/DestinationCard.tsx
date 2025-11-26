@@ -6,6 +6,7 @@ import {
   Pressable,
   Image,
   Animated,
+  Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,35 +26,132 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
   const navigation = useNavigation();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const imageScaleAnim = React.useRef(new Animated.Value(1)).current;
+  const shimmerAnim = React.useRef(new Animated.Value(0)).current;
+  const translateYAnim = React.useRef(new Animated.Value(0)).current;
+  const shadowAnim = React.useRef(new Animated.Value(0)).current;
+  const useNativeDriver = Platform.OS !== 'web';
 
   const favorite = isFavorite(destination.id);
 
+  // Shimmer animation effect
+  React.useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver,
+        }),
+      ])
+    );
+    shimmer.start();
+    return () => shimmer.stop();
+  }, []);
+
+  const shimmerTranslate = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-300, 300],
+  });
+
+  const shadowOpacity = shadowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.1, 0.3],
+  });
+
+  const shadowRadius = shadowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [4, 20],
+  });
+
+  const handleHoverIn = () => {
+    Animated.parallel([
+      Animated.spring(translateYAnim, {
+        toValue: -8,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1.02,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
+      }),
+      Animated.timing(shadowAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
+  const handleHoverOut = () => {
+    Animated.parallel([
+      Animated.spring(translateYAnim, {
+        toValue: 0,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
+      }),
+      Animated.timing(shadowAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
   const handlePressIn = () => {
     Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.98,
-        duration: 150,
-        useNativeDriver: true,
+      Animated.spring(scaleAnim, {
+        toValue: 0.97,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
       }),
       Animated.timing(imageScaleAnim, {
         toValue: 1.1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver,
+      }),
+      Animated.spring(translateYAnim, {
+        toValue: -4,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
       }),
     ]).start();
   };
 
   const handlePressOut = () => {
     Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
+      Animated.spring(scaleAnim, {
+        toValue: 1.02,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
       }),
       Animated.timing(imageScaleAnim, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver,
+      }),
+      Animated.spring(translateYAnim, {
+        toValue: -8,
+        friction: 5,
+        tension: 40,
+        useNativeDriver,
       }),
     ]).start();
   };
@@ -113,11 +211,28 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
   }));
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View 
+      style={{ 
+        transform: [
+          { scale: scaleAnim },
+          { translateY: translateYAnim }
+        ],
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: shadowRadius },
+        shadowOpacity: shadowOpacity,
+        shadowRadius: shadowRadius,
+        elevation: shadowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [2, 8],
+        }),
+      }}
+    >
       <Pressable
         onPress={handleCardPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        onHoverIn={handleHoverIn}
+        onHoverOut={handleHoverOut}
         style={[
           styles.card,
           {
@@ -125,9 +240,33 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
             borderColor: colors.border,
             borderRadius: borderRadius.lg,
             ...shadows.card,
+            overflow: 'hidden',
           },
         ]}
       >
+        {/* Shimmer Effect Overlay */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            transform: [{ translateX: shimmerTranslate }],
+            zIndex: 10,
+          }}
+        >
+          <LinearGradient
+            colors={['transparent', 'rgba(255, 255, 255, 0.3)', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              width: 100,
+              height: '100%',
+            }}
+          />
+        </Animated.View>
+
         {/* Image Section */}
         <View style={styles.imageContainer}>
           <Animated.View style={{ transform: [{ scale: imageScaleAnim }], width: '100%', height: '100%' }}>

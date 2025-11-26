@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Modal,
+  Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +22,7 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useLanguage } from '../context/LanguageContext';
 import Header from '../components/Header';
+import AnimatedPressable from '../components/AnimatedPressable';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const ProfileScreen = () => {
@@ -223,9 +225,10 @@ const ProfileScreen = () => {
           {t.account}
         </Text>
         {menuItems.map((item, index) => (
-          <Pressable
+          <AnimatedPressable
             key={index}
             onPress={item.onPress}
+            animationType="scale"
             style={[
               styles.menuItem,
               {
@@ -258,7 +261,7 @@ const ProfileScreen = () => {
               </Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
-          </Pressable>
+          </AnimatedPressable>
         ))}
 
         {/* Preferences Section */}
@@ -279,9 +282,10 @@ const ProfileScreen = () => {
           {t.preferences}
         </Text>
         {preferenceItems.map((item, index) => (
-          <Pressable
+          <AnimatedPressable
             key={index}
             onPress={item.onPress}
+            animationType="scale"
             style={[
               styles.menuItem,
               {
@@ -336,7 +340,7 @@ const ProfileScreen = () => {
             ) : (
               <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
             )}
-          </Pressable>
+          </AnimatedPressable>
         ))}
 
         {/* Support Section */}
@@ -357,9 +361,10 @@ const ProfileScreen = () => {
           {t.support}
         </Text>
         {supportItems.map((item, index) => (
-          <Pressable
+          <AnimatedPressable
             key={index}
             onPress={item.onPress}
+            animationType="scale"
             style={[
               styles.menuItem,
               {
@@ -405,12 +410,13 @@ const ProfileScreen = () => {
               </View>
             </View>
             <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
-          </Pressable>
+          </AnimatedPressable>
         ))}
 
         {/* Logout Button */}
-        <Pressable
+        <AnimatedPressable
           onPress={handleLogout}
+          animationType="bubble"
           style={[
             styles.logoutButton,
             {
@@ -444,7 +450,7 @@ const ProfileScreen = () => {
           >
             {t.logout}
           </Text>
-        </Pressable>
+        </AnimatedPressable>
 
         {/* App Version */}
         <Text

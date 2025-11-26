@@ -20,6 +20,7 @@ import Toast from 'react-native-toast-message';
 import { useTheme } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import AnimatedPressable from '../components/AnimatedPressable';
 import { User } from '../types';
 
 const USER_STORAGE_KEY = 'gomate_user';
@@ -97,6 +98,64 @@ const AccountSettingsScreen = () => {
     }
   };
 
+  const handleUpdateProfilePicture = async () => {
+    try {
+      if (!profileImage) {
+        Toast.show({
+          type: 'error',
+          text1: 'No Image Selected',
+          text2: 'Please select a profile picture first',
+          position: 'top',
+        });
+        return;
+      }
+
+      // Get all users
+      const usersJson = await AsyncStorage.getItem(USERS_STORAGE_KEY);
+      const users: User[] = usersJson ? JSON.parse(usersJson) : [];
+
+      // Update user with new profile image
+      const updatedUser: User = {
+        ...user!,
+        profileImage: profileImage,
+      };
+
+      // Update in users array
+      const updatedUsers = users.map((u) => 
+        u.id === user?.id ? updatedUser : u
+      );
+      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
+
+      // Update current user
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      // Update context with new user data (stays logged in)
+      await updateUser(updatedUser);
+
+      // Add notification
+      addNotification({
+        type: 'profile_updated',
+        title: 'Profile Picture Updated',
+        message: 'Your profile picture has been successfully updated',
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Picture Updated',
+        text2: 'Your profile picture has been saved',
+        position: 'top',
+      });
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update profile picture',
+        position: 'top',
+      });
+    }
+  };
+
   const handleSaveProfile = async () => {
     try {
       // Validate name
@@ -138,12 +197,11 @@ const AccountSettingsScreen = () => {
         return;
       }
 
-      // Update user - preserve all existing fields including password
+      // Update user - preserve all existing fields including password and profileImage
       const updatedUser: User = {
         ...user!,
         name,
         email,
-        profileImage: profileImage || undefined,
       };
 
       // Update in users array
@@ -168,7 +226,7 @@ const AccountSettingsScreen = () => {
       Toast.show({
         type: 'success',
         text1: 'Profile Updated',
-        text2: 'Your changes have been saved successfully',
+        text2: 'Your name and email have been saved',
         position: 'top',
       });
 
@@ -237,6 +295,16 @@ const AccountSettingsScreen = () => {
 
       // Update current user
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      // Update context with new user data (stays logged in)
+      await updateUser(updatedUser);
+
+      // Add notification
+      addNotification({
+        type: 'account_updated',
+        title: 'Password Changed',
+        message: 'Your password has been updated successfully',
+      });
 
       Toast.show({
         type: 'success',
@@ -440,8 +508,32 @@ const AccountSettingsScreen = () => {
               },
             ]}
           >
-            Tap to change profile photo
+            {profileImage ? 'Profile picture selected' : 'Select a new profile picture'}
           </Text>
+          {profileImage && (
+            <AnimatedPressable
+              onPress={handleUpdateProfilePicture}
+              animationType="bubble"
+              style={{
+                backgroundColor: colors.primary,
+                borderRadius: borderRadius.md,
+                paddingVertical: spacing[3],
+                paddingHorizontal: spacing[6],
+                marginTop: spacing[3],
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.semibold,
+                }}
+              >
+                Update Profile Picture
+              </Text>
+            </AnimatedPressable>
+          )}
         </View>
 
         {/* Profile Information */}
@@ -587,8 +679,9 @@ const AccountSettingsScreen = () => {
                   Cancel
                 </Text>
               </Pressable>
-              <Pressable
+              <AnimatedPressable
                 onPress={handleSaveProfile}
+                animationType="bounce"
                 style={[
                   styles.button,
                   styles.saveButton,
@@ -613,7 +706,7 @@ const AccountSettingsScreen = () => {
                 >
                   Save Changes
                 </Text>
-              </Pressable>
+              </AnimatedPressable>
             </View>
           )}
         </View>

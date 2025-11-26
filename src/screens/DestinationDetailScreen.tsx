@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme';
 import { useFavorites } from '../context/FavoritesContext';
+import AnimatedPressable from '../components/AnimatedPressable';
 import { getDestinationById } from '../data/destinations';
 
 const DestinationDetailScreen = () => {
@@ -99,12 +100,13 @@ const DestinationDetailScreen = () => {
             borderTopRightRadius: 24,
           }}
         >
-          <Pressable
+          <AnimatedPressable
             onPress={() => navigation.goBack()}
+            animationType="scale"
             style={{ padding: spacing[2] }}
           >
             <Feather name="x" size={24} color={colors.foreground} />
-          </Pressable>
+          </AnimatedPressable>
           <Text
             style={{
               fontSize: typography.fontSize.xl,
@@ -118,8 +120,9 @@ const DestinationDetailScreen = () => {
           >
             {destination.name}
           </Text>
-          <Pressable
+          <AnimatedPressable
             onPress={() => toggleFavorite(destination.id)}
+            animationType="bubble"
             style={{ padding: spacing[2] }}
           >
             <Feather
@@ -128,7 +131,7 @@ const DestinationDetailScreen = () => {
               color={favorite ? colors.destructive : colors.foreground}
               fill={favorite ? colors.destructive : 'transparent'}
             />
-          </Pressable>
+          </AnimatedPressable>
         </View>
 
         {/* Scrollable Content */}
